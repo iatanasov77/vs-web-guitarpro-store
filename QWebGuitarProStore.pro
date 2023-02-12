@@ -23,7 +23,7 @@ SOURCES += $$files(src/*.cpp, true)
 HEADERS += $$files(src/*.h, true)
 FORMS += $$files(Forms/*.ui, true)
 
-RC_ICONS = dictionary_transparent.ico
+RC_ICONS = logo.ico
 RESOURCES = WebGuitarProStore.qrc
 TRANSLATIONS += $$files(translations/*.ts, true)
 

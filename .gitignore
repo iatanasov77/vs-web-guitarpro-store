@@ -1,32 +1,36 @@
-# Prerequisites
-*.d
+##############################
+# Eclipse project meta data
+##############################
+/.settings/
+/.buildpath
+.buildpath
+/.project
+/.dbeaver-data-sources.xml
+/.dbeaver/
+/.cproject
+/.backup
+/*.backup
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
 
-# Precompiled Headers
-*.gch
-*.pch
+##############################
+# Project meta data
+##############################
+/release/
+/debug/
+/InstallBuilder/*.backup
+/docs/VisualParadigm/.*
+/docs/VisualParadigm/*.vpp.bak*
+/*/*.autosave
+/build/
+/.qmake.stash
+/Makefile
+/Makefile.Debug
+/Makefile.Release
+/Help/*.qhc
+/Help/*.qch
+/iORxYw.json
+/translations/*.qm
+/QVocabulary_resource.rc
+/QVocabulary.qxee
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
 
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
