@@ -3,7 +3,7 @@ TARGET = WebGuitarProStore
 TEMPLATE = app
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-QT += core gui
+QT += core gui network
 
 # Compile with:
 # qmake-mingw CONFIG+=debug
