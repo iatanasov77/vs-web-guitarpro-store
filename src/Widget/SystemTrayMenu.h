@@ -1,20 +1,23 @@
 #ifndef SYSTEMTRAYMENU_H
 #define SYSTEMTRAYMENU_H
 
-#include <QObject>
-#include <QtWidgets/QSystemTrayIcon>
+#include <QWidget>
 
-class SystemTrayMenu : public QObject
+namespace Ui {
+	class SystemTrayMenu;
+}
+
+class SystemTrayMenu : public QWidget
 {
     Q_OBJECT
 
 	public:
-		SystemTrayMenu( QObject *_parent = nullptr );
-
-	public slots:
-		void onActivated( QSystemTrayIcon::ActivationReason reason );
+		SystemTrayMenu( QWidget *_parent = nullptr );
+		~SystemTrayMenu();
 
 	private:
+		Ui::SystemTrayMenu *ui;
+
 		void init();
 };
 

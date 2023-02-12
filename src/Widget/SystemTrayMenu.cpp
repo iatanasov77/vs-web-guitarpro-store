@@ -1,27 +1,28 @@
 #include "SystemTrayMenu.h"
+#include "ui_SystemTrayMenu.h"
 
-#include <QtWidgets/QMenu>
-#include <QAction>
+#include <QCoreApplication>
+#include <QToolButton>
 
-SystemTrayMenu::SystemTrayMenu( QObject *_parent )
+SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
+	QWidget( parent ),
+	ui( new Ui::SystemTrayMenu )
 {
-	//init();
+	ui->setupUi( this );
+
+	init();
+}
+
+SystemTrayMenu::~SystemTrayMenu()
+{
+    delete ui;
 }
 
 void SystemTrayMenu::init()
 {
-	QMenu* menu = new QMenu(); // want to get a context menu from system tray
-	QAction * viewWindow = new QAction( "Another Action" );
-	QAction * quitAction = new QAction( "Exit" );
-
-	connect( viewWindow, SIGNAL( triggered() ), this, SLOT( show() ) );
-	connect( quitAction, SIGNAL( triggered() ), this, SLOT( close() ) );
-
-	menu->addAction( viewWindow );
-	menu->addAction( quitAction );
-}
-
-void SystemTrayMenu::onActivated( QSystemTrayIcon::ActivationReason reason )
-{
-
+	connect(
+		ui->btnQuitApplication, &QToolButton::clicked,
+		QCoreApplication::instance(), &QCoreApplication::quit,
+		Qt::QueuedConnection
+	);
 }
