@@ -4,8 +4,10 @@
 #include <QNetworkReply>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QJsonDocument>
 #include "Application/VsApplication.h"
 #include "Application/VsAuth.h"
+#include "Application/VsSettings.h"
 
 UserLoginDialog::UserLoginDialog( QWidget *parent ) :
     QDialog( parent ),
@@ -17,9 +19,12 @@ UserLoginDialog::UserLoginDialog( QWidget *parent ) :
     saveButton->setText( tr( "Login" ) );
 
     // May be there is other way to translate Core Strings
-    ui->buttonBox->button( QDialogButtonBox::Cancel )->setText( tr( "Cancel" ) );
+    QPushButton *cancelButton = ui->buttonBox->button( QDialogButtonBox::Cancel );
+    cancelButton->setText( tr( "Cancel" ) );
 
     connect( saveButton, SIGNAL( clicked() ), this, SLOT( save() ) );
+    connect( cancelButton, SIGNAL( clicked() ), this, SLOT( reject() ) );
+
     connect(
     	VsApplication::instance()->httpRequestWorker(), SIGNAL( workerFinished( HttpRequestWorker* ) ),
 		this, SLOT( handleAuthResult( HttpRequestWorker* ) )
@@ -37,19 +42,35 @@ void UserLoginDialog::save()
 	QString password	= ui->lePassword->text();
 
 	bool result = VsAuth::instance()->login( username, password );
+	if ( result ) {
+		// Accept on handleAuthResult
+		// accept();
+	}
 }
 
 void UserLoginDialog::handleAuthResult( HttpRequestWorker *worker )
 {
-    QString msg;
+	QString errorMsg;
+	VsSettings *oSettings	= VsSettings::instance();
 
     if ( worker->errorType == QNetworkReply::NoError ) {
         // communication was successful
-        msg = "Success - Response: " + worker->response;
+    	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+
+    	QVariant authPayload	= doc["payload"].toVariant();
+    	//qDebug() << "API Token: " << authPayload.toHash().value( "token" ).toString();
+
+    	QVariant refreshToken	= doc["refresh_token"].toVariant();
+    	//qDebug() << "API Token: " << refreshToken.toString();
+
+    	oSettings->setValue( "authPayload", authPayload, "Authentication" );
+    	oSettings->setValue( "refreshToken", refreshToken, "Authentication" );
+
+    	accept();
     }
     else {
         // an error occurred
-        msg = "Error: " + worker->errorStr;
-        QMessageBox::information( this, "", msg );
+    	errorMsg	= "Error: " + worker->errorStr;
+        QMessageBox::information( this, "", errorMsg );
     }
 }

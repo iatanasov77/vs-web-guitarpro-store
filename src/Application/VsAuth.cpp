@@ -1,9 +1,8 @@
 #include "VsAuth.h"
 
 #include "GlobalTypes.h"
-#include "VsApplication.h"
-#include "VsSettings.h"
-#include "ApiManager/HttpRequestWorker.h"
+#include "Application/VsApplication.h"
+#include "Application/VsSettings.h"
 
 VsAuth *VsAuth::_instance = 0;
 
@@ -25,8 +24,12 @@ VsAuth *VsAuth::instance()
 
 bool VsAuth::isLoggedIn()
 {
-	// VsSettings::instance()->value( "language", "General" ).toString();
-	return false;
+	VsSettings *oSettings	= VsSettings::instance();
+
+	int authExpireTime		= oSettings->value( "authPayload", "Authentication" ).toInt();
+
+	return QDateTime::currentDateTime().toMSecsSinceEpoch() <= authExpireTime;
+
 }
 
 bool VsAuth::login( QString username, QString password )
