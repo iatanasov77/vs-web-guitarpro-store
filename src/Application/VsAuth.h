@@ -1,22 +1,24 @@
 #ifndef VS_AUTH_H
 #define VS_AUTH_H
 
-#include <QSettings>
+#include <QString>
+#include "ApiManager/HttpRequest.h"
+#include "ApiManager/JsonRequest.h"
 
 class VsAuth
 {
-	protected:
+	private:
 		VsAuth();
         static VsAuth *createInstance();
-
-        static VsAuth* _instance;
+        static VsAuth *_instance;
 
 	public:
         ~VsAuth();
         static VsAuth *instance();
 
-        QVariant value( QString key, QString group, QVariant defaultValue = QVariant() );
-        void setValue( QString key, QVariant value, QString group );
+        bool isLoggedIn();
+        bool login( QString username, QString password );
+        bool testRequestWorker();
 };
 
 #endif // VS_AUTH_H

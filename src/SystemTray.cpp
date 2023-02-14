@@ -4,8 +4,31 @@
 #include <QtGui/QIcon>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QDialog>
+#include "Application/VsAuth.h"
+#include "Dialog/UserLoginDialog.h"
 
 SystemTray::SystemTray( QObject *parent )
+{
+	if ( ! VsAuth::instance()->isLoggedIn() ) {
+		loginToWebGuitarPro();
+	}
+
+	createSystemTrayApplication();
+}
+
+void SystemTray::loginToWebGuitarPro()
+{
+	UserLoginDialog *dlg	= new UserLoginDialog();
+	dlg->setModal( true );
+
+	if ( dlg->exec() == QDialog::Accepted )
+	{
+		//qDebug() << "Open DB: " << dbPath;
+	}
+}
+
+void SystemTray::createSystemTrayApplication()
 {
 	QPixmap oPixmap( 32,32 );
 	oPixmap.load ( ":/Resources/icons/logo.png" );

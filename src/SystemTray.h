@@ -9,16 +9,18 @@ class SystemTray : public QObject
 {
     Q_OBJECT
 
+	private:
+		QSystemTrayIcon *trayIcon;
+		SystemTrayMenu *sysTrayMenu;
+
+		void loginToWebGuitarPro();
+		void createSystemTrayApplication();
+
 	public:
 		SystemTray( QObject *_parent = nullptr );
 
 	public slots:
 		void onActivated( QSystemTrayIcon::ActivationReason reason );
-
-	private:
-		QSystemTrayIcon *trayIcon;
-		SystemTrayMenu *sysTrayMenu;
-
 };
 
 #endif // SYSTEMTRAY_H

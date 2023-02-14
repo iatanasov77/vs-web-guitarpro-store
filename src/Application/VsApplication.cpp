@@ -12,30 +12,27 @@
 
 #include "Application/VsSettings.h"
 
-
-
 /*
  * This one did the trick!
  * ------------------------
  * But I want to do this: https://stackoverflow.com/questions/46172607/qt-singleton-implementation
  */
-VsApplication* VsApplication::_instance = 0;
+VsApplication *VsApplication::_instance = 0;
 
 VsApplication::VsApplication()
 {
 	m_currLang	= "en";
 
-//	QSettings* settings	= VsSettings::instance()->settings();
-//	settings->setValue( "language", m_currLang );
-//	settings->sync();	// Sync ini file
+	m_apiUrl	= "http://wgp.lh/api/";
+	m_httpRequestWorker = new HttpRequestWorker();
 }
 
-VsApplication* VsApplication::createInstance()
+VsApplication *VsApplication::createInstance()
 {
     return new VsApplication();
 }
 
-VsApplication* VsApplication::instance() {
+VsApplication *VsApplication::instance() {
 	if ( ! _instance ) {
 		_instance = createInstance();
 	}
@@ -48,9 +45,7 @@ QDir VsApplication::dataPath()
 {
 	//QDir dataPath{ QStandardPaths::writableLocation( QStandardPaths::AppDataLocation ) };
 	QDir dataPath{ QStandardPaths::writableLocation( QStandardPaths::AppLocalDataLocation ) };
-
 	//QDir dataPath{ QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation ) };
-
 
 	if( ! dataPath.exists() )
 		dataPath.mkpath( "." );
@@ -148,4 +143,14 @@ QString VsApplication::appAboutBody()
 
 	file.close();
 	return data;
+}
+
+QString VsApplication::apiUrl()
+{
+	return m_apiUrl;
+}
+
+HttpRequestWorker *VsApplication::httpRequestWorker()
+{
+	return m_httpRequestWorker;
 }
