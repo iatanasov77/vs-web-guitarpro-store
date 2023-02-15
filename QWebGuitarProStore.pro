@@ -12,9 +12,15 @@ CONFIG(debug, debug|release) {
 	CONFIG += console
 }
 
-DEFINES += QT_DEPRECATED_WARNINGS
-
+# QtWaitingSpinner
+##########################################################
+INCLUDEPATH += /usr/lib/QtWaitingSpinner/include
+LIBS += \
+    -L/usr/lib/QtWaitingSpinner/lib -lqtwaitingspinner
+##########################################################
+    
 INCLUDEPATH += /projects/VS_WebGuitarPro_Store/src
+DEFINES += QT_DEPRECATED_WARNINGS
 
 ###############################
 # SOURCES

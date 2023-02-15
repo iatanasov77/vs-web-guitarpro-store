@@ -41,6 +41,7 @@ void UserLoginDialog::save()
 	QString username	= ui->leUsername->text();
 	QString password	= ui->lePassword->text();
 
+	VsApplication::instance()->createWaitingSpinner( this );
 	bool result = VsAuth::instance()->login( username, password );
 	if ( result ) {
 		// Accept on handleAuthResult
@@ -53,6 +54,7 @@ void UserLoginDialog::handleAuthResult( HttpRequestWorker *worker )
 	QString errorMsg;
 	VsSettings *oSettings	= VsSettings::instance();
 
+	VsApplication::instance()->destroyWaitingSpinner();
     if ( worker->errorType == QNetworkReply::NoError ) {
         // communication was successful
     	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );

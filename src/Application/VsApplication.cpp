@@ -25,6 +25,7 @@ VsApplication::VsApplication()
 
 	m_apiUrl	= "http://wgp.lh/api/";
 	m_httpRequestWorker = new HttpRequestWorker();
+	m_waitingSpinner	= nullptr;
 }
 
 VsApplication *VsApplication::createInstance()
@@ -153,4 +154,28 @@ QString VsApplication::apiUrl()
 HttpRequestWorker *VsApplication::httpRequestWorker()
 {
 	return m_httpRequestWorker;
+}
+
+WaitingSpinnerWidget *VsApplication::createWaitingSpinner( QWidget *parentWidget )
+{
+	if ( m_waitingSpinner == nullptr ) {
+		m_waitingSpinner	= new WaitingSpinnerWidget( parentWidget );
+
+		m_waitingSpinner->setRoundness( 70.0 );
+		m_waitingSpinner->setMinimumTrailOpacity( 15.0 );
+		m_waitingSpinner->setTrailFadePercentage( 70.0 );
+		m_waitingSpinner->setNumberOfLines( 12 );
+		m_waitingSpinner->setLineLength( 10 );
+		m_waitingSpinner->setLineWidth( 5 );
+		m_waitingSpinner->setInnerRadius( 10 );
+		m_waitingSpinner->setRevolutionsPerSecond( 1 );
+		m_waitingSpinner->setColor( QColor( 81, 4, 71 ) );
+	}
+
+	return m_waitingSpinner;
+}
+
+void VsApplication::destroyWaitingSpinner()
+{
+	delete m_waitingSpinner;
 }
