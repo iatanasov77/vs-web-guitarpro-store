@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QJsonDocument>
+#include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsAuth.h"
 #include "Application/VsSettings.h"
@@ -65,8 +66,8 @@ void UserLoginDialog::handleAuthResult( HttpRequestWorker *worker )
     	QVariant refreshToken	= doc["refresh_token"].toVariant();
     	//qDebug() << "API Token: " << refreshToken.toString();
 
-    	oSettings->setValue( "authPayload", authPayload, "Authentication" );
-    	oSettings->setValue( "refreshToken", refreshToken, "Authentication" );
+    	oSettings->setValue( "authPayload", authPayload, SettingsGroups["authentication"] );
+    	oSettings->setValue( "refreshToken", refreshToken, SettingsGroups["authentication"] );
 
     	accept();
     }
