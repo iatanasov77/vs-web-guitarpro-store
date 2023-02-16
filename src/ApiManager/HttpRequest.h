@@ -8,7 +8,7 @@ class HttpRequest : public AbstractRequest
 	public:
 		HttpRequest( HttpRequestInput *input );
 
-		QNetworkRequest createRequest();
+		QNetworkRequest *createRequest();
 		QString httpAttributeEncode( QString attributeName, QString input );
 };
 

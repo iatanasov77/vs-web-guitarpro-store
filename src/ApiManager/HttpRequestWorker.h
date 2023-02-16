@@ -7,6 +7,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
+#include "AbstractRequest.h"
 #include "HttpRequestInput.h"
 
 /**
@@ -24,7 +25,7 @@ class HttpRequestWorker : public QObject
 		QString errorStr;
 
 		explicit HttpRequestWorker( QObject *parent = 0 );
-		void execute( HttpRequestInput *input );
+		void execute( HttpRequestInput *input, QMap<QString, QString> headers = QMap<QString, QString>() );
 
 	signals:
 		void workerFinished( HttpRequestWorker *worker );
@@ -32,6 +33,7 @@ class HttpRequestWorker : public QObject
 	private:
 		QNetworkAccessManager *manager;
 		void resetWorker();
+		void _sendRequest( AbstractRequest *requestWrapper );
 		void debugNetworkReply( QNetworkReply *reply );
 
 	private slots:

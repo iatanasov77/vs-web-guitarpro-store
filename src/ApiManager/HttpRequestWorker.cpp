@@ -5,7 +5,6 @@
 #include <QSaveFile>
 
 #include "GlobalTypes.h"
-#include "ApiManager/AbstractRequest.h"
 #include "ApiManager/HttpRequest.h"
 #include "ApiManager/JsonRequest.h"
 
@@ -21,7 +20,7 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent )
     );
 }
 
-void HttpRequestWorker::execute( HttpRequestInput *input )
+void HttpRequestWorker::execute( HttpRequestInput *input, QMap<QString, QString> headers )
 {
 	resetWorker();
 
@@ -31,29 +30,15 @@ void HttpRequestWorker::execute( HttpRequestInput *input )
 	} else {
 		requestWrapper	= new HttpRequest( input );
 	}
-	QNetworkRequest request	= requestWrapper->createRequest();
 
-    if ( input->httpMethod == "GET" ) {
-        manager->get( request );
-    }
-    else if ( input->httpMethod == "POST" ) {
-        manager->post( request, requestWrapper->requestContent() );
-    }
-    else if ( input->httpMethod == "PUT" ) {
-        manager->put( request, requestWrapper->requestContent() );
-    }
-    else if ( input->httpMethod == "HEAD" ) {
-        manager->head( request );
-    }
-    else if ( input->httpMethod == "DELETE" ) {
-        manager->deleteResource( request );
-    }
-    else {
-    	QByteArray requestContent	= requestWrapper->requestContent();
-        QBuffer buff( & requestContent );
-        manager->sendCustomRequest( request, input->httpMethod.toLatin1(), &buff );
-    }
+	QNetworkRequest *request	= requestWrapper->createRequest();
+	if ( ! headers.empty() ) {
+		foreach ( const QString &key, headers.keys() ) {
+			request->setRawHeader( key.toUtf8(), headers.value( key ).toUtf8() );
+		}
+	}
 
+	_sendRequest( requestWrapper );
 }
 
 void HttpRequestWorker::resetWorker()
@@ -89,4 +74,31 @@ void HttpRequestWorker::debugNetworkReply( QNetworkReply *reply )
 	file.open( QIODevice::WriteOnly );
 	file.write( reply->readAll() );
 	file.commit(); // Calling commit() is mandatory, otherwise nothing will be written.
+}
+
+void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper )
+{
+	QNetworkRequest *request	= requestWrapper->request();
+	HttpRequestInput *input		= requestWrapper->requestInput();
+
+	if ( input->httpMethod == "GET" ) {
+	    manager->get( *request );
+	}
+	else if ( input->httpMethod == "POST" ) {
+		manager->post( *request, requestWrapper->requestContent() );
+	}
+	else if ( input->httpMethod == "PUT" ) {
+		manager->put( *request, requestWrapper->requestContent() );
+	}
+	else if ( input->httpMethod == "HEAD" ) {
+		manager->head( *request );
+	}
+	else if ( input->httpMethod == "DELETE" ) {
+		manager->deleteResource( *request );
+	}
+	else {
+		QByteArray requestContent	= requestWrapper->requestContent();
+		QBuffer buff( & requestContent );
+		manager->sendCustomRequest( *request, input->httpMethod.toLatin1(), &buff );
+	}
 }

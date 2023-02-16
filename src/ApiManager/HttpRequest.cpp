@@ -7,7 +7,7 @@
 
 HttpRequest::HttpRequest( HttpRequestInput *input ) : AbstractRequest( input ) { }
 
-QNetworkRequest HttpRequest::createRequest()
+QNetworkRequest *HttpRequest::createRequest()
 {
 	// decide on the variable layout
 	if ( _input->files.length() > 0 ) {
@@ -135,17 +135,17 @@ QNetworkRequest HttpRequest::createRequest()
 
 
 	// prepare connection
-	QNetworkRequest request = QNetworkRequest( QUrl( _input->httpUrl ) );
-	request.setRawHeader( "User-Agent", "Agent name goes here" );
+	_request = new QNetworkRequest( QUrl( _input->httpUrl ) );
+	_request->setRawHeader( "User-Agent", "Agent name goes here" );
 
 	if ( _input->varLayout == URL_ENCODED ) {
-		request.setHeader( QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded" );
+		_request->setHeader( QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded" );
 	}
 	else if ( _input->varLayout == MULTIPART ) {
-		request.setHeader( QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + boundary );
+		_request->setHeader( QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + boundary );
 	}
 
-	return request;
+	return _request;
 }
 
 QString HttpRequest::httpAttributeEncode( QString attributeName, QString input )

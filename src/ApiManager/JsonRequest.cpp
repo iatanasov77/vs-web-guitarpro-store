@@ -7,7 +7,7 @@
 
 JsonRequest::JsonRequest( HttpRequestInput *input ) : AbstractRequest( input ) { }
 
-QNetworkRequest JsonRequest::createRequest()
+QNetworkRequest *JsonRequest::createRequest()
 {
 	QJsonObject object;
 
@@ -19,8 +19,8 @@ QNetworkRequest JsonRequest::createRequest()
 	_requestContent		= doc.toJson();
 
 	// prepare connection
-	QNetworkRequest request = QNetworkRequest( QUrl( _input->httpUrl ) );
-	request.setRawHeader( "Content-Type", "application/json" );
+	_request = new QNetworkRequest( QUrl( _input->httpUrl ) );
+	_request->setRawHeader( "Content-Type", "application/json" );
 
-	return request;
+	return _request;
 }

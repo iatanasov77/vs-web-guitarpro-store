@@ -8,7 +8,7 @@ class JsonRequest : public AbstractRequest
 	public:
 		JsonRequest( HttpRequestInput *input );
 
-		QNetworkRequest createRequest();
+		QNetworkRequest *createRequest();
 };
 
 #endif // JSONREQUEST_H
