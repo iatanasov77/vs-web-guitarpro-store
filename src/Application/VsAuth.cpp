@@ -25,7 +25,6 @@ VsAuth *VsAuth::instance()
 bool VsAuth::isLoggedIn()
 {
 	VsSettings *oSettings	= VsSettings::instance();
-
 	QVariant authExpireTime	= oSettings->value( "authPayload", SettingsGroups["authentication"] ).toHash().value( "tokenExpired" );
 
 	return QDateTime::currentSecsSinceEpoch() <= authExpireTime.toInt();

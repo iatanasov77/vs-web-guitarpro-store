@@ -10,6 +10,8 @@
 
 SystemTray::SystemTray( QObject *parent )
 {
+	Q_UNUSED( parent );
+
 	if ( ! VsAuth::instance()->isLoggedIn() ) {
 		loginToWebGuitarPro();
 	}
@@ -50,6 +52,8 @@ void SystemTray::createSystemTrayApplication()
 
 void SystemTray::onActivated( QSystemTrayIcon::ActivationReason reason )
 {
+	Q_UNUSED( reason );
+
 	QRect rect	= trayIcon->geometry();
 	if ( rect.x() == 0 && rect.y() == 0 ) {
 		QRect screenrect = QGuiApplication::primaryScreen()->availableGeometry();
