@@ -3,5 +3,7 @@
 	<qresource prefix="/">
 		<file>VERSION</file>
 		<file>Resources/icons/logo.png</file>
+		<file>Resources/icons/Symbol_NO.svg</file>
+		<file>Resources/icons/Symbol_OK.svg</file>
 	</qresource>
 </RCC>

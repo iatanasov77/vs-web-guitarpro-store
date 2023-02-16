@@ -27,7 +27,7 @@ WgpMyTablatures *WgpMyTablatures::instance()
 
 bool WgpMyTablatures::getMyTablatures()
 {
-	if ( ! VsAuth::instance()->isLoggedIn() ) {
+	if ( VsAuth::instance()->isLoggedIn() ) {
 		_getMyTablatures();
 
 		return true;
