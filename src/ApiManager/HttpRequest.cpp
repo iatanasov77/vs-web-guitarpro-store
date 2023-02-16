@@ -2,6 +2,7 @@
 
 #include <QUrl>
 #include <QFileInfo>
+#include <QDateTime>
 
 #include "GlobalTypes.h"
 

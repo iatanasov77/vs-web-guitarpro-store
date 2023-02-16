@@ -1,5 +1,6 @@
 #include "HttpRequestWorker.h"
 
+#include <QDebug>
 #include <QDateTime>
 #include <QBuffer>
 #include <QSaveFile>
