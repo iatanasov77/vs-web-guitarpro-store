@@ -1,5 +1,7 @@
 #include "VsAuth.h"
 
+#include <QDateTime>
+#include <QDebug>
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsSettings.h"
