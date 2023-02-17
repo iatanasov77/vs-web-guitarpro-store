@@ -14,9 +14,9 @@ CONFIG(debug, debug|release) {
 
 # QtWaitingSpinner
 ##########################################################
-INCLUDEPATH += /usr/lib/QtWaitingSpinner/include
-LIBS += \
-    -L/usr/lib/QtWaitingSpinner/lib -lqtwaitingspinner
+INCLUDEPATH += /usr/include/QtWaitingSpinner/include
+LIBS += -L/usr/lib -lqtwaitingspinner
+
 ##########################################################
     
 INCLUDEPATH += /projects/VS_WebGuitarPro_Store/src
