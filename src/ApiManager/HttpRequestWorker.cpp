@@ -21,9 +21,10 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent )
     );
 }
 
-void HttpRequestWorker::execute( HttpRequestInput *input, QMap<QString, QString> headers )
+void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName, QMap<QString, QString> headers )
 {
 	resetWorker();
+	requestName	= strRequestName;
 
 	AbstractRequest *requestWrapper;
 	if ( input->requestType	== REQUEST_TYPE_JSON ) {
@@ -47,6 +48,7 @@ void HttpRequestWorker::resetWorker()
 	response 	= "";
 	errorType	= QNetworkReply::NoError;
 	errorStr 	= "";
+	requestName	= "";
 }
 
 void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )

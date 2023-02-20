@@ -43,7 +43,7 @@ bool VsAuth::login( QString username, QString password )
 	input.addVar( "username", username );
 	input.addVar( "password", password );
 
-	VsApplication::instance()->httpRequestWorker()->execute( &input );
+	VsApplication::instance()->httpRequestWorker()->execute( &input, "LoginCheck" );
 
 	return true;
 }

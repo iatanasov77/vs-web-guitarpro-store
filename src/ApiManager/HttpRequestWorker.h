@@ -23,9 +23,10 @@ class HttpRequestWorker : public QObject
 		QByteArray response;
 		QNetworkReply::NetworkError errorType;
 		QString errorStr;
+		QString requestName;
 
 		explicit HttpRequestWorker( QObject *parent = 0 );
-		void execute( HttpRequestInput *input, QMap<QString, QString> headers = QMap<QString, QString>() );
+		void execute( HttpRequestInput *input, QString strRequestName = "", QMap<QString, QString> headers = QMap<QString, QString>() );
 
 	signals:
 		void workerFinished( HttpRequestWorker *worker );

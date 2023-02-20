@@ -64,3 +64,12 @@ void VsSettings::setValue( QString key, QVariant value, QString group )
 
 	_settings->sync();
 }
+
+void VsSettings::remove( QString key, QString group )
+{
+	_settings->beginGroup( group );
+	_settings->remove( key );
+	_settings->endGroup();
+
+	_settings->sync();
+}

@@ -27,7 +27,7 @@ UserLoginDialog::UserLoginDialog( QWidget *parent ) :
     connect( cancelButton, SIGNAL( clicked() ), this, SLOT( reject() ) );
 
     connect(
-    	VsApplication::instance()->httpRequestWorker(), SIGNAL( workerFinished( HttpRequestWorker* ) ),
+		VsApplication::instance()->httpRequestWorker(), SIGNAL( workerFinished( HttpRequestWorker* ) ),
 		this, SLOT( handleAuthResult( HttpRequestWorker* ) )
 	);
 }
@@ -52,10 +52,14 @@ void UserLoginDialog::save()
 
 void UserLoginDialog::handleAuthResult( HttpRequestWorker *worker )
 {
+	if ( worker->requestName != "LoginCheck" )
+		return;
+
+	// don't use it
+	//VsApplication::instance()->destroyWaitingSpinner();
+
 	QString errorMsg;
 	VsSettings *oSettings	= VsSettings::instance();
-
-	VsApplication::instance()->destroyWaitingSpinner();
     if ( worker->errorType == QNetworkReply::NoError ) {
         // communication was successful
     	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );

@@ -48,5 +48,5 @@ void WgpMyTablatures::_getMyTablatures()
 	QMap<QString, QString> headers;
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
-	VsApplication::instance()->httpRequestWorker()->execute( &input, headers );
+	VsApplication::instance()->httpRequestWorker()->execute( &input, "GetMyTablatures", headers );
 }

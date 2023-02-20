@@ -14,6 +14,9 @@
 #include "Application/VsAuth.h"
 #include "Application/WgpMyTablatures.h"
 
+#include "GlobalTypes.h"
+#include "Application/VsSettings.h"
+
 SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	QWidget( parent ),
 	ui( new Ui::SystemTrayMenu )
@@ -26,14 +29,14 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	}
 
 	connect(
-		VsApplication::instance()->httpRequestWorker(), SIGNAL( workerFinished( HttpRequestWorker* ) ),
-		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
-	);
-
-	connect(
 		ui->btnQuitApplication, &QToolButton::clicked,
 		QCoreApplication::instance(), &QCoreApplication::quit,
 		Qt::QueuedConnection
+	);
+
+	connect(
+		VsApplication::instance()->httpRequestWorker(), SIGNAL( workerFinished( HttpRequestWorker* ) ),
+		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
 	);
 }
 
@@ -54,9 +57,13 @@ void SystemTrayMenu::displayMyTablatures()
 
 void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 {
-	QString errorMsg;
+	if ( worker->requestName != "GetMyTablatures" )
+			return;
 
-	VsApplication::instance()->destroyWaitingSpinner();
+	// don't use it
+	//VsApplication::instance()->destroyWaitingSpinner();
+
+	QString errorMsg;
 	if ( worker->errorType == QNetworkReply::NoError ) {
 		// communication was successful
 		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
@@ -95,6 +102,6 @@ void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 	else {
 		// an error occurred
 		errorMsg	= "Error: " + worker->errorStr;
-		QMessageBox::information( this, "", errorMsg );
+		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }

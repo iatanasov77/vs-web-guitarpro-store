@@ -8,15 +8,19 @@
 #include "Application/VsAuth.h"
 #include "Dialog/UserLoginDialog.h"
 
+#include "GlobalTypes.h"
+#include "Application/VsSettings.h"
+
 SystemTray::SystemTray( QObject *parent )
 {
 	Q_UNUSED( parent );
 
 	if ( ! VsAuth::instance()->isLoggedIn() ) {
 		loginToWebGuitarPro();
+	} else {
+		createSystemTrayApplication();
+		sysTrayMenu->displayMyTablatures();
 	}
-
-	createSystemTrayApplication();
 }
 
 void SystemTray::loginToWebGuitarPro()
@@ -26,7 +30,8 @@ void SystemTray::loginToWebGuitarPro()
 
 	if ( dlg->exec() == QDialog::Accepted )
 	{
-		//qDebug() << "Open DB: " << dbPath;
+		createSystemTrayApplication();
+		//sysTrayMenu->displayMyTablatures();
 	}
 }
 
@@ -54,13 +59,8 @@ void SystemTray::onActivated( QSystemTrayIcon::ActivationReason reason )
 {
 	Q_UNUSED( reason );
 
-	QRect rect	= trayIcon->geometry();
-	if ( rect.x() == 0 && rect.y() == 0 ) {
-		QRect screenrect = QGuiApplication::primaryScreen()->availableGeometry();
-		sysTrayMenu->move( screenrect.right() - sysTrayMenu->width(), screenrect.bottom() - sysTrayMenu->height() );
-	} else {
-		sysTrayMenu->move( rect.x(), rect.y() );
-	}
+	QRect screenrect = QGuiApplication::primaryScreen()->availableGeometry();
+	sysTrayMenu->move( screenrect.right() - sysTrayMenu->width(), screenrect.bottom() - sysTrayMenu->height() );
 
 	sysTrayMenu->show();
 }

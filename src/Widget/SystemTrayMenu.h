@@ -16,10 +16,9 @@ class SystemTrayMenu : public QWidget
 		SystemTrayMenu( QWidget *_parent = nullptr );
 		~SystemTrayMenu();
 
+		void displayMyTablatures();
 	private:
 		Ui::SystemTrayMenu *ui;
-
-		void displayMyTablatures();
 
 	public slots:
 		void handleMyTablaturesResult( HttpRequestWorker *worker );

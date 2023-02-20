@@ -19,6 +19,7 @@ class VsSettings
 
         QVariant value( QString key, QString group, QVariant defaultValue = QVariant() );
         void setValue( QString key, QVariant value, QString group );
+        void remove( QString key, QString group );
 };
 
 #endif // VS_SETTINGS_H
