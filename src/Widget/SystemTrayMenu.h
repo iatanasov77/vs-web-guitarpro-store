@@ -1,21 +1,27 @@
 #ifndef SYSTEMTRAYMENU_H
 #define SYSTEMTRAYMENU_H
 
-#include <QObject>
-#include <QtWidgets/QSystemTrayIcon>
+#include <QWidget>
+#include "ApiManager/HttpRequestWorker.h"
 
-class SystemTrayMenu : public QObject
+namespace Ui {
+	class SystemTrayMenu;
+}
+
+class SystemTrayMenu : public QWidget
 {
     Q_OBJECT
 
 	public:
-		SystemTrayMenu( QObject *_parent = nullptr );
+		SystemTrayMenu( QWidget *_parent = nullptr );
+		~SystemTrayMenu();
+
+		void displayMyTablatures();
+	private:
+		Ui::SystemTrayMenu *ui;
 
 	public slots:
-		void onActivated( QSystemTrayIcon::ActivationReason reason );
-
-	private:
-		void init();
+		void handleMyTablaturesResult( HttpRequestWorker *worker );
 };
 
 #endif // SYSTEMTRAYMENU_H

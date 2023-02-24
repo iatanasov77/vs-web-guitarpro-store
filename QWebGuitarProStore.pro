@@ -3,7 +3,7 @@ TARGET = WebGuitarProStore
 TEMPLATE = app
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-QT += core gui
+QT += core gui network
 
 # Compile with:
 # qmake-mingw CONFIG+=debug
@@ -12,9 +12,15 @@ CONFIG(debug, debug|release) {
 	CONFIG += console
 }
 
-DEFINES += QT_DEPRECATED_WARNINGS
+# QtWaitingSpinner
+##########################################################
+INCLUDEPATH += /usr/include/QtWaitingSpinner/include
+LIBS += -L/usr/lib -lqtwaitingspinner
 
+##########################################################
+    
 INCLUDEPATH += /projects/VS_WebGuitarPro_Store/src
+DEFINES += QT_DEPRECATED_WARNINGS
 
 ###############################
 # SOURCES
