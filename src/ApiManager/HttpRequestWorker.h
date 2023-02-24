@@ -26,7 +26,10 @@ class HttpRequestWorker : public QObject
 		QString requestName;
 
 		explicit HttpRequestWorker( QObject *parent = 0 );
-		void execute( HttpRequestInput *input, QString strRequestName = "", QMap<QString, QString> headers = QMap<QString, QString>() );
+		void execute( HttpRequestInput *input );
+		void execute( HttpRequestInput *input, QMap<QString, QString> headers );
+		void execute( HttpRequestInput *input, QString strRequestName );
+		void execute( HttpRequestInput *input, QString strRequestName, QMap<QString, QString> headers );
 
 	signals:
 		void workerFinished( HttpRequestWorker *worker );

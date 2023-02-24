@@ -21,6 +21,58 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent )
     );
 }
 
+void HttpRequestWorker::execute( HttpRequestInput *input )
+{
+	resetWorker();
+
+	AbstractRequest *requestWrapper;
+	if ( input->requestType	== REQUEST_TYPE_JSON ) {
+		requestWrapper	= new JsonRequest( input );
+	} else {
+		requestWrapper	= new HttpRequest( input );
+	}
+
+	requestWrapper->createRequest();
+	_sendRequest( requestWrapper );
+}
+
+void HttpRequestWorker::execute( HttpRequestInput *input, QMap<QString, QString> headers )
+{
+	resetWorker();
+
+	AbstractRequest *requestWrapper;
+	if ( input->requestType	== REQUEST_TYPE_JSON ) {
+		requestWrapper	= new JsonRequest( input );
+	} else {
+		requestWrapper	= new HttpRequest( input );
+	}
+
+	QNetworkRequest *request	= requestWrapper->createRequest();
+	if ( ! headers.empty() ) {
+		foreach ( const QString &key, headers.keys() ) {
+			request->setRawHeader( key.toUtf8(), headers.value( key ).toUtf8() );
+		}
+	}
+
+	_sendRequest( requestWrapper );
+}
+
+void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName )
+{
+	resetWorker();
+	requestName	= strRequestName;
+
+	AbstractRequest *requestWrapper;
+	if ( input->requestType	== REQUEST_TYPE_JSON ) {
+		requestWrapper	= new JsonRequest( input );
+	} else {
+		requestWrapper	= new HttpRequest( input );
+	}
+
+	requestWrapper->createRequest();
+	_sendRequest( requestWrapper );
+}
+
 void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName, QMap<QString, QString> headers )
 {
 	resetWorker();
