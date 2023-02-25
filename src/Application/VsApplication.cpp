@@ -23,8 +23,11 @@ VsApplication::VsApplication()
 {
 	m_currLang	= "en";
 
-	m_apiUrl	= "http://wgp.lh/api/";
-	m_httpRequestWorker = new HttpRequestWorker();
+	#ifdef QT_DEBUG
+		m_apiUrl	= "http://wgp.lh/api";
+	#else
+		m_apiUrl	= "http://guitarpro.vankosoft.org/api";
+	#endif
 }
 
 VsApplication *VsApplication::createInstance()
@@ -150,7 +153,3 @@ QString VsApplication::apiUrl()
 	return m_apiUrl;
 }
 
-HttpRequestWorker *VsApplication::httpRequestWorker()
-{
-	return m_httpRequestWorker;
-}

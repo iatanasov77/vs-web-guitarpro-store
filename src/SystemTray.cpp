@@ -10,6 +10,7 @@
 
 #include "GlobalTypes.h"
 #include "Application/VsSettings.h"
+#include "Application/VsApplication.h"
 
 SystemTray::SystemTray( QObject *parent )
 {

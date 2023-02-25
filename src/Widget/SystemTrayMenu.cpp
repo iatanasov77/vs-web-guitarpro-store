@@ -35,7 +35,12 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	);
 
 	connect(
-		VsApplication::instance()->httpRequestWorker(), SIGNAL( workerFinished( HttpRequestWorker* ) ),
+		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),
+		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
+	);
+
+	connect(
+		WgpMyTablatures::instance(), SIGNAL( getMyTablaturesFinished( HttpRequestWorker* ) ),
 		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
 	);
 }
@@ -56,9 +61,6 @@ void SystemTrayMenu::displayMyTablatures()
 
 void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 {
-	if ( worker->requestName != "GetMyTablatures" )
-			return;
-
 	QString errorMsg;
 	if ( worker->errorType == QNetworkReply::NoError ) {
 		// communication was successful

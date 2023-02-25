@@ -4,7 +4,6 @@
 #include <QNetworkReply>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QJsonDocument>
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsAuth.h"
@@ -29,7 +28,7 @@ UserLoginDialog::UserLoginDialog( QWidget *parent ) :
     connect( cancelButton, SIGNAL( clicked() ), this, SLOT( reject() ) );
 
     connect(
-		VsApplication::instance()->httpRequestWorker(), SIGNAL( workerFinished( HttpRequestWorker* ) ),
+		VsAuth::instance(), SIGNAL( loginCheckFinished( HttpRequestWorker* ) ),
 		this, SLOT( handleAuthResult( HttpRequestWorker* ) )
 	);
 }
@@ -59,29 +58,10 @@ void UserLoginDialog::handleAuthResult( HttpRequestWorker *worker )
 	waitingSpinner->stop();
 	setEnabled( true );
 
-	if ( worker->requestName != "LoginCheck" )
-		return;
-
-	QString errorMsg;
-	VsSettings *oSettings	= VsSettings::instance();
     if ( worker->errorType == QNetworkReply::NoError ) {
-        // communication was successful
-    	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
-
-    	QVariant authPayload	= doc["payload"].toVariant();
-    	//qDebug() << "API Token: " << authPayload.toHash().value( "token" ).toString();
-
-    	QVariant refreshToken	= doc["refresh_token"].toVariant();
-    	//qDebug() << "API Token: " << refreshToken.toString();
-
-    	oSettings->setValue( "authPayload", authPayload, SettingsGroups["authentication"] );
-    	oSettings->setValue( "refreshToken", refreshToken, SettingsGroups["authentication"] );
-
     	accept();
-    }
-    else {
-        // an error occurred
-    	errorMsg	= "Error: " + worker->errorStr;
+    } else {
+    	QString errorMsg	= "Error: " + worker->errorStr;
         QMessageBox::information( this, "", errorMsg );
     }
 }

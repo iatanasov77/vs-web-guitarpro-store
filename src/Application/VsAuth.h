@@ -1,24 +1,41 @@
 #ifndef VS_AUTH_H
 #define VS_AUTH_H
 
+#include <QObject>
 #include <QString>
-#include "ApiManager/HttpRequest.h"
-#include "ApiManager/JsonRequest.h"
+#include <QMap>
 
-class VsAuth
+#include "ApiManager/HttpRequestWorker.h"
+
+enum AuthRequest{LOGIN_CHECK, UNDEFINED};
+static const QMap<AuthRequest, QString> RequestTypes {
+	{ LOGIN_CHECK, "LoginCheck" },
+};
+
+class VsAuth : public QObject
 {
+	Q_OBJECT
+
 	private:
-		VsAuth();
+		static VsAuth *_instance;
+	    HttpRequestWorker *m_httpRequestWorker;
+
+		explicit VsAuth( QObject *_parent = nullptr );
         static VsAuth *createInstance();
-        static VsAuth *_instance;
+
+        void handleLoginCheck( HttpRequestWorker *worker );
 
 	public:
-        ~VsAuth();
         static VsAuth *instance();
 
         bool isLoggedIn();
         bool login( QString username, QString password );
-        bool testRequestWorker();
+
+	public slots:
+		void handleAuthResult( HttpRequestWorker *worker );
+
+	signals:
+		void loginCheckFinished( HttpRequestWorker* );
 };
 
 #endif // VS_AUTH_H

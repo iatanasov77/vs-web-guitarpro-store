@@ -3,7 +3,6 @@
 
 #include <QDir>
 #include <QTranslator>
-#include "ApiManager/HttpRequestWorker.h"
 
 class VsApplication
 {
@@ -18,7 +17,6 @@ class VsApplication
 		QString m_langPath; // Path of language files. This is always fixed to /languages.
 
 		QString m_apiUrl;
-		HttpRequestWorker *m_httpRequestWorker;
 
 		void switchTranslator( QTranslator& translator, const QString& filename );
 
@@ -34,7 +32,6 @@ class VsApplication
 		QString appAboutBody();
 
 		QString apiUrl();
-		HttpRequestWorker *httpRequestWorker();
 };
 
 #endif // VS_APPLICATION_H
