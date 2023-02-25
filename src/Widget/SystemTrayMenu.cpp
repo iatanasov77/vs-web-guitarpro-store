@@ -47,7 +47,6 @@ SystemTrayMenu::~SystemTrayMenu()
 
 void SystemTrayMenu::displayMyTablatures()
 {
-	VsApplication::instance()->createWaitingSpinner( this );
 	bool result = WgpMyTablatures::instance()->getMyTablatures();
 	if ( result ) {
 		// Accept on handleAuthResult
@@ -59,9 +58,6 @@ void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 {
 	if ( worker->requestName != "GetMyTablatures" )
 			return;
-
-	// don't use it
-	//VsApplication::instance()->destroyWaitingSpinner();
 
 	QString errorMsg;
 	if ( worker->errorType == QNetworkReply::NoError ) {

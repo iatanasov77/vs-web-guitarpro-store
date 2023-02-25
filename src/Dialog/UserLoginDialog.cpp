@@ -16,6 +16,8 @@ UserLoginDialog::UserLoginDialog( QWidget *parent ) :
 {
     ui->setupUi( this );
 
+    waitingSpinner	= new WgpWaitingSpinner( this );
+
     QPushButton *saveButton = ui->buttonBox->button( QDialogButtonBox::Save );
     saveButton->setText( tr( "Login" ) );
 
@@ -39,10 +41,12 @@ UserLoginDialog::~UserLoginDialog()
 
 void UserLoginDialog::save()
 {
+	waitingSpinner->start();
+	setDisabled( true );
+
 	QString username	= ui->leUsername->text();
 	QString password	= ui->lePassword->text();
 
-	VsApplication::instance()->createWaitingSpinner( this );
 	bool result = VsAuth::instance()->login( username, password );
 	if ( result ) {
 		// Accept on handleAuthResult
@@ -52,11 +56,11 @@ void UserLoginDialog::save()
 
 void UserLoginDialog::handleAuthResult( HttpRequestWorker *worker )
 {
+	waitingSpinner->stop();
+	setEnabled( true );
+
 	if ( worker->requestName != "LoginCheck" )
 		return;
-
-	// don't use it
-	//VsApplication::instance()->destroyWaitingSpinner();
 
 	QString errorMsg;
 	VsSettings *oSettings	= VsSettings::instance();
