@@ -1,3 +1,17 @@
+0.3.0	|	Release date: **26.02.2023**
+============================================
+* New Features and Improvements:
+  - Create a WgpWaitingSpinner Class.
+  - Improve Using Api Manager Worker.
+  - Create SystemTrayMenu Toolbar.
+  - Add Logout Functionality.
+  - Make Toolbar as Property of Menu Widget.
+  - Create ProfileIcon Rounded.
+  - Display MyTablatures Categorized.
+  - Improve Display MyTablatures.
+  - Set Profile Icon Bold.
+
+
 0.2.0	|	Release date: **25.02.2023**
 ============================================
 * New Features:
