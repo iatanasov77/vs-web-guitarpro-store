@@ -2,7 +2,6 @@
 #include "ui_SystemTrayMenu.h"
 
 #include <QCoreApplication>
-#include <QToolBar>
 #include <QMenu>
 #include <QToolButton>
 #include <QPainter>
@@ -28,6 +27,9 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	ui( new Ui::SystemTrayMenu )
 {
 	ui->setupUi( this );
+
+	toolBar	= new QToolBar( ui->widget );
+	ui->menubarLayout->addWidget( toolBar );
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		createToolBar();
@@ -56,8 +58,6 @@ void SystemTrayMenu::loginToWebGuitarPro()
 
 void SystemTrayMenu::createToolBar()
 {
-	QToolBar *toolBar	= new QToolBar( ui->widget );
-
 	QMenu *profileMenu 	= new QMenu( "Profile" );
 
 	QAction *logoutAct = new QAction( tr("&Sign Out" ), this );
@@ -75,8 +75,6 @@ void SystemTrayMenu::createToolBar()
 	profileButton->setMenu( profileMenu );
 	profileButton->setPopupMode( QToolButton::InstantPopup );
 	toolBar->addWidget( profileButton  );
-
-	ui->menubarLayout->addWidget( toolBar );
 }
 
 QIcon SystemTrayMenu::createProfileIcon()
@@ -175,6 +173,7 @@ void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 void SystemTrayMenu::logout()
 {
 	VsAuth::instance()->logout();
+	toolBar->clear();
 	ui->treeWidget->clear();
 	loginToWebGuitarPro();
 }
