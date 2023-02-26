@@ -60,6 +60,11 @@ bool VsAuth::login( QString username, QString password )
 	return true;
 }
 
+void VsAuth::logout()
+{
+	VsSettings::instance()->remove( "authPayload", SettingsGroups["authentication"] );
+}
+
 QString VsAuth::userFullName()
 {
 	if ( ! isLoggedIn() ) {

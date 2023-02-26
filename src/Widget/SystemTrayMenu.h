@@ -21,11 +21,13 @@ class SystemTrayMenu : public QWidget
 	private:
 		Ui::SystemTrayMenu *ui;
 
+		void loginToWebGuitarPro();
 		void createToolBar();
 		QIcon createProfileIcon();
 
 	public slots:
 		void handleMyTablaturesResult( HttpRequestWorker *worker );
+		void logout();
 };
 
 #endif // SYSTEMTRAYMENU_H

@@ -4,36 +4,12 @@
 #include <QtGui/QIcon>
 #include <QGuiApplication>
 #include <QScreen>
-#include <QDialog>
-#include "Application/VsAuth.h"
-#include "Dialog/UserLoginDialog.h"
-
-#include "GlobalTypes.h"
-#include "Application/VsSettings.h"
-#include "Application/VsApplication.h"
 
 SystemTray::SystemTray( QObject *parent )
 {
 	Q_UNUSED( parent );
 
-	if ( ! VsAuth::instance()->isLoggedIn() ) {
-		loginToWebGuitarPro();
-	} else {
-		createSystemTrayApplication();
-		sysTrayMenu->displayMyTablatures();
-	}
-}
-
-void SystemTray::loginToWebGuitarPro()
-{
-	UserLoginDialog *dlg	= new UserLoginDialog();
-	dlg->setModal( true );
-
-	if ( dlg->exec() == QDialog::Accepted )
-	{
-		createSystemTrayApplication();
-		//sysTrayMenu->displayMyTablatures();
-	}
+	createSystemTrayApplication();
 }
 
 void SystemTray::createSystemTrayApplication()

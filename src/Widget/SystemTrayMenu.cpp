@@ -13,22 +13,27 @@
 #include <QMessageBox>
 #include <QTreeWidgetItem>
 #include <QtGui/QIcon>
+#include <QDialog>
+
+#include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsAuth.h"
 #include "Application/WgpMyTablatures.h"
-
-#include "GlobalTypes.h"
 #include "Application/VsSettings.h"
+
+#include "Dialog/UserLoginDialog.h"
 
 SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	QWidget( parent ),
 	ui( new Ui::SystemTrayMenu )
 {
 	ui->setupUi( this );
-	createToolBar();
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
+		createToolBar();
 		displayMyTablatures();
+	} else {
+		loginToWebGuitarPro();
 	}
 }
 
@@ -37,13 +42,28 @@ SystemTrayMenu::~SystemTrayMenu()
     delete ui;
 }
 
+void SystemTrayMenu::loginToWebGuitarPro()
+{
+	UserLoginDialog *dlg	= new UserLoginDialog();
+	dlg->setModal( true );
+
+	if ( dlg->exec() == QDialog::Accepted )
+	{
+		createToolBar();
+		displayMyTablatures();
+	}
+}
+
 void SystemTrayMenu::createToolBar()
 {
 	QToolBar *toolBar	= new QToolBar( ui->widget );
 
 	QMenu *profileMenu 	= new QMenu( "Profile" );
 
-	profileMenu->addAction( "Sign Out" );
+	QAction *logoutAct = new QAction( tr("&Sign Out" ), this );
+	logoutAct->setStatusTip( tr( "Sign Out From API" ) );
+	connect( logoutAct, SIGNAL( triggered() ), this, SLOT( logout() ) );
+	profileMenu->addAction( logoutAct );
 
 	QAction *quitAct = new QAction( tr("&Quit" ), this );
 	quitAct->setStatusTip( tr( "Quit Application" ) );
@@ -150,4 +170,11 @@ void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 		errorMsg	= "Error: " + worker->errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
+}
+
+void SystemTrayMenu::logout()
+{
+	VsAuth::instance()->logout();
+	ui->treeWidget->clear();
+	loginToWebGuitarPro();
 }

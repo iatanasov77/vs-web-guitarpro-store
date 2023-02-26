@@ -30,6 +30,7 @@ class VsAuth : public QObject
 
         bool isLoggedIn();
         bool login( QString username, QString password );
+        void logout();
         QString userFullName();
 
 	public slots:
