@@ -84,7 +84,6 @@ QIcon SystemTrayMenu::createProfileIcon()
 	auto parts = userFullName.split( ' ' );
 	for ( const auto& i : parts  )
 	{
-	    //qDebug() << i;
 		if ( ! i.isEmpty() ) {
 			profileIconText.append( i.at( 0 ).toUpper() );
 		}
@@ -94,9 +93,14 @@ QIcon SystemTrayMenu::createProfileIcon()
 	QPainter painter( &image );
 	QFont font	= painter.font();
 
-	font.setPixelSize( 48 );
+	font.setPixelSize( 58 );
 	painter.setFont( font );
-	painter.fillRect( image.rect(), Qt::yellow );
+
+	painter.setBrush( Qt::red );
+	painter.drawEllipse( image.rect() );
+	//painter.fillRect( image.rect(), Qt::red );
+
+	painter.setPen( Qt::white );
 	painter.drawText( image.rect(), Qt::AlignCenter | Qt::AlignVCenter, profileIconText );
 
 	QIcon profileIcon	= QIcon( QPixmap::fromImage( image ) );
