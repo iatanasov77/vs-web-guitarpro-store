@@ -3,8 +3,6 @@
 
 #include <QDir>
 #include <QTranslator>
-#include "ApiManager/HttpRequestWorker.h"
-#include "waitingspinnerwidget.h"
 
 class VsApplication
 {
@@ -19,8 +17,6 @@ class VsApplication
 		QString m_langPath; // Path of language files. This is always fixed to /languages.
 
 		QString m_apiUrl;
-		HttpRequestWorker *m_httpRequestWorker;
-		WaitingSpinnerWidget *m_waitingSpinner;
 
 		void switchTranslator( QTranslator& translator, const QString& filename );
 
@@ -36,9 +32,6 @@ class VsApplication
 		QString appAboutBody();
 
 		QString apiUrl();
-		HttpRequestWorker *httpRequestWorker();
-		WaitingSpinnerWidget *createWaitingSpinner( QWidget *parentWidget );
-		void destroyWaitingSpinner();
 };
 
 #endif // VS_APPLICATION_H

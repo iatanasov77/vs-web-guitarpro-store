@@ -1,4 +1,6 @@
+###########################################################
 # Running in Debug Mode: qmake CONFIG+=debug
+###########################################################
 TARGET = WebGuitarProStore
 TEMPLATE = app
 
@@ -12,15 +14,16 @@ CONFIG(debug, debug|release) {
 	CONFIG += console
 }
 
+INCLUDEPATH += /projects/VS_WebGuitarPro_Store/src
+DEFINES += QT_DEPRECATED_WARNINGS
+
+###########################################################
 # QtWaitingSpinner
-##########################################################
+###########################################################
 INCLUDEPATH += /usr/include/QtWaitingSpinner/include
 LIBS += -L/usr/lib -lqtwaitingspinner
 
-##########################################################
-    
-INCLUDEPATH += /projects/VS_WebGuitarPro_Store/src
-DEFINES += QT_DEPRECATED_WARNINGS
+###########################################################
 
 ###############################
 # SOURCES

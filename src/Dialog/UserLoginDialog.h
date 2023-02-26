@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "ApiManager/HttpRequestWorker.h"
+#include "Application/WgpWaitingSpinner.h"
 
 namespace Ui {
 	class UserLoginDialog;
@@ -20,6 +21,7 @@ class UserLoginDialog : public QDialog
 
 	private:
 	    Ui::UserLoginDialog *ui;
+	    WgpWaitingSpinner *waitingSpinner;
 
 	public slots:
 		void save();

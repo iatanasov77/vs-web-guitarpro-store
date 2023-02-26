@@ -13,7 +13,6 @@ class SystemTray : public QObject
 		QSystemTrayIcon *trayIcon;
 		SystemTrayMenu *sysTrayMenu;
 
-		void loginToWebGuitarPro();
 		void createSystemTrayApplication();
 
 	public:
