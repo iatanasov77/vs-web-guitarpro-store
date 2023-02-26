@@ -28,6 +28,7 @@ class SystemTrayMenu : public QWidget
 		QIcon createProfileIcon();
 
 	public slots:
+		void handleMyCategoriesResult( HttpRequestWorker *worker );
 		void handleMyTablaturesResult( HttpRequestWorker *worker );
 		void logout();
 };

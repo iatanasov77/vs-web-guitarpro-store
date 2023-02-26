@@ -49,8 +49,8 @@ void WgpMyTablatures::handleMyTablaturesResult( HttpRequestWorker *worker )
 bool WgpMyTablatures::getMyTablatures()
 {
 	if ( VsAuth::instance()->isLoggedIn() ) {
-		_getMyTablatures();
-		//_getMyCategories();
+		//_getMyTablatures();
+		_getMyCategories();
 
 		return true;
 	}
@@ -86,6 +86,6 @@ void WgpMyTablatures::_getMyCategories()
 	QMap<QString, QString> headers;
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
-	m_httpRequestWorker->setObjectName( TablaturesRequestTypes[GET_MY_TABLATURES] );
+	m_httpRequestWorker->setObjectName( TablaturesRequestTypes[GET_MY_CATEGORIES] );
 	m_httpRequestWorker->execute( &input, headers );
 }
