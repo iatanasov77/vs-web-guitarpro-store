@@ -31,6 +31,8 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	toolBar	= new QToolBar( ui->widget );
 	ui->menubarLayout->addWidget( toolBar );
 
+	ui->treeWidget->setColumnCount( 3 );
+
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		createToolBar();
 		displayMyTablatures();
@@ -128,8 +130,6 @@ void SystemTrayMenu::displayMyTablatures()
 
 void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
-	ui->treeWidget->setColumnCount( 3 );
-
 	QString errorMsg;
 	if ( worker->errorType == QNetworkReply::NoError ) {
 		// communication was successful
@@ -174,7 +174,8 @@ void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 
 				items.append( treeItem );
 			}
-			ui->treeWidget->insertTopLevelItems( 0, items );
+			//ui->treeWidget->insertTopLevelItems( 0, items );
+			ui->treeWidget->addTopLevelItems( items );
 		}
 	}
 	else {
@@ -186,8 +187,6 @@ void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 
 void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 {
-	ui->treeWidget->setColumnCount( 3 );
-
 	QString errorMsg;
 	if ( worker->errorType == QNetworkReply::NoError ) {
 		// communication was successful
@@ -221,7 +220,8 @@ void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 
 				items.append( treeItem );
 			}
-			ui->treeWidget->insertTopLevelItems( 0, items );
+			//ui->treeWidget->insertTopLevelItems( 0, items );
+			ui->treeWidget->addTopLevelItems( items );
 		}
 	}
 	else {

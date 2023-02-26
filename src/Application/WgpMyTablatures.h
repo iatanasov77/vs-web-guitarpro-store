@@ -26,6 +26,7 @@ class WgpMyTablatures : public QObject
 
         void _getMyTablatures();
         void _getMyCategories();
+        void _getMyTablaturesUncategorized();
 
 	public:
         static WgpMyTablatures *instance();

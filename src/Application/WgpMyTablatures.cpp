@@ -17,7 +17,8 @@ WgpMyTablatures::WgpMyTablatures( QObject *parent ) : QObject( parent )
 
 	connect(
 		m_httpRequestWorker, SIGNAL( workerFinished( HttpRequestWorker* ) ),
-		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
+		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) ),
+		Qt::QueuedConnection
 	);
 }
 
@@ -39,6 +40,7 @@ void WgpMyTablatures::handleMyTablaturesResult( HttpRequestWorker *worker )
 {
 	if ( worker->objectName() == TablaturesRequestTypes[GET_MY_CATEGORIES] ) {
 		emit getMyCategoriesFinished( worker );
+		_getMyTablaturesUncategorized();	// Should To Be Here
 	} else if( worker->objectName() == TablaturesRequestTypes[GET_MY_TABLATURES] ) {
 		emit getMyTablaturesFinished( worker );
 	} else {
@@ -87,5 +89,21 @@ void WgpMyTablatures::_getMyCategories()
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
 	m_httpRequestWorker->setObjectName( TablaturesRequestTypes[GET_MY_CATEGORIES] );
+	m_httpRequestWorker->execute( &input, headers );
+}
+
+void WgpMyTablatures::_getMyTablaturesUncategorized()
+{
+	VsSettings *oSettings	= VsSettings::instance();
+	QVariant authToken		= oSettings->value( "authPayload", SettingsGroups["authentication"] ).toHash().value( "token" );
+
+	QString strUrl	= VsApplication::instance()->apiUrl().append( "/my-tablatures-uncategorized" );
+	HttpRequestInput input( strUrl, "GET" );
+	input.requestType	= REQUEST_TYPE_JSON;
+
+	QMap<QString, QString> headers;
+	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
+
+	m_httpRequestWorker->setObjectName( TablaturesRequestTypes[GET_MY_TABLATURES] );
 	m_httpRequestWorker->execute( &input, headers );
 }
