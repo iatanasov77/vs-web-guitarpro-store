@@ -96,6 +96,7 @@ QIcon SystemTrayMenu::createProfileIcon()
 	QFont font	= painter.font();
 
 	font.setPixelSize( 58 );
+	font.setBold( true );
 	painter.setFont( font );
 
 	painter.setBrush( Qt::red );
