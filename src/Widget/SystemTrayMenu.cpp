@@ -2,7 +2,10 @@
 #include "ui_SystemTrayMenu.h"
 
 #include <QCoreApplication>
+#include <QToolBar>
+#include <QMenu>
 #include <QToolButton>
+#include <QPainter>
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -22,17 +25,74 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	ui( new Ui::SystemTrayMenu )
 {
 	ui->setupUi( this );
-	ui->treeWidget->setColumnCount( 3 );
+	createToolBar();
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		displayMyTablatures();
 	}
+}
 
-	connect(
-		ui->btnQuitApplication, &QToolButton::clicked,
-		QCoreApplication::instance(), &QCoreApplication::quit,
-		Qt::QueuedConnection
-	);
+SystemTrayMenu::~SystemTrayMenu()
+{
+    delete ui;
+}
+
+void SystemTrayMenu::createToolBar()
+{
+	QToolBar *toolBar	= new QToolBar( ui->widget );
+
+	QMenu *profileMenu 	= new QMenu( "Profile" );
+
+	profileMenu->addAction( "Sign Out" );
+
+	QAction *quitAct = new QAction( tr("&Quit" ), this );
+	quitAct->setStatusTip( tr( "Quit Application" ) );
+	connect( quitAct, &QAction::triggered, QCoreApplication::instance(), &QCoreApplication::quit, Qt::QueuedConnection );
+	profileMenu->addAction( quitAct );
+
+	QToolButton *profileButton	= new QToolButton( toolBar );
+	profileButton->setIcon( createProfileIcon() );
+	profileButton->setMenu( profileMenu );
+	profileButton->setPopupMode( QToolButton::InstantPopup );
+	toolBar->addWidget( profileButton  );
+
+	ui->menubarLayout->addWidget( toolBar );
+}
+
+QIcon SystemTrayMenu::createProfileIcon()
+{
+	QString profileIconText	= QString( "" );
+	QString userFullName	= VsAuth::instance()->userFullName();
+	auto parts = userFullName.split( ' ' );
+	for ( const auto& i : parts  )
+	{
+	    //qDebug() << i;
+		if ( ! i.isEmpty() ) {
+			profileIconText.append( i.at( 0 ).toUpper() );
+		}
+	}
+
+	QImage image( 100, 100, QImage::Format_ARGB32_Premultiplied );
+	QPainter painter( &image );
+	QFont font	= painter.font();
+
+	font.setPixelSize( 48 );
+	painter.setFont( font );
+	painter.fillRect( image.rect(), Qt::yellow );
+	painter.drawText( image.rect(), Qt::AlignCenter | Qt::AlignVCenter, profileIconText );
+
+	QIcon profileIcon	= QIcon( QPixmap::fromImage( image ) );
+
+	return profileIcon;
+}
+
+void SystemTrayMenu::displayMyTablatures()
+{
+	bool result = WgpMyTablatures::instance()->getMyTablatures();
+	if ( result ) {
+		// Accept on handleAuthResult
+		// accept();
+	}
 
 	connect(
 		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),
@@ -45,22 +105,10 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	);
 }
 
-SystemTrayMenu::~SystemTrayMenu()
-{
-    delete ui;
-}
-
-void SystemTrayMenu::displayMyTablatures()
-{
-	bool result = WgpMyTablatures::instance()->getMyTablatures();
-	if ( result ) {
-		// Accept on handleAuthResult
-		// accept();
-	}
-}
-
 void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 {
+	ui->treeWidget->setColumnCount( 3 );
+
 	QString errorMsg;
 	if ( worker->errorType == QNetworkReply::NoError ) {
 		// communication was successful

@@ -2,6 +2,7 @@
 #define SYSTEMTRAYMENU_H
 
 #include <QWidget>
+#include <QIcon>
 #include "ApiManager/HttpRequestWorker.h"
 
 namespace Ui {
@@ -19,6 +20,9 @@ class SystemTrayMenu : public QWidget
 		void displayMyTablatures();
 	private:
 		Ui::SystemTrayMenu *ui;
+
+		void createToolBar();
+		QIcon createProfileIcon();
 
 	public slots:
 		void handleMyTablaturesResult( HttpRequestWorker *worker );

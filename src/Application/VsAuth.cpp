@@ -60,6 +60,17 @@ bool VsAuth::login( QString username, QString password )
 	return true;
 }
 
+QString VsAuth::userFullName()
+{
+	if ( ! isLoggedIn() ) {
+		return "Not Logged In";
+	}
+
+	QString userFullName	= VsSettings::instance()->value( "authPayload", SettingsGroups["authentication"] ).toHash()
+													.value( "userFullName" ).toString();
+	return userFullName;
+}
+
 void VsAuth::handleAuthResult( HttpRequestWorker *worker )
 {
     if ( worker->objectName() == RequestTypes[LOGIN_CHECK] ) {
