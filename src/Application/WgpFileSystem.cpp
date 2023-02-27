@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+#include "VsApplication.h"
 #include "WgpMyTablatures.h"
 
 WgpFileSystem *WgpFileSystem::_instance = nullptr;
@@ -98,7 +99,9 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 					if ( ! QDir( tablaturePath ).exists() ) {
 						qDebug() << "PATH NOT EXISTS: " << tablaturePath;
 
-						QString fileUrl	= QString( "http://wgp.lh/tablatures-ext/%1/read" ).arg( jt["id"].toString() );
+						QString fileUrl	= QString( "%1/tablatures-ext/%2/read" )
+											.arg( VsApplication::instance()->apiUrl() )
+											.arg( jt["id"].toString() );
 						downloader->download( fileUrl, tablaturePath );
 					}
 				}
