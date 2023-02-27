@@ -17,8 +17,9 @@
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsAuth.h"
-#include "Application/WgpMyTablatures.h"
 #include "Application/VsSettings.h"
+#include "Application/WgpMyTablatures.h"
+#include "Application/WgpFileSystem.h"
 
 #include "Dialog/UserLoginDialog.h"
 
@@ -36,6 +37,7 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		createToolBar();
 		displayMyTablatures();
+		syncFileSystem();
 	} else {
 		loginToWebGuitarPro();
 	}
@@ -55,6 +57,7 @@ void SystemTrayMenu::loginToWebGuitarPro()
 	{
 		createToolBar();
 		displayMyTablatures();
+		syncFileSystem();
 	}
 }
 
@@ -238,4 +241,9 @@ void SystemTrayMenu::logout()
 	toolBar->clear();
 	ui->treeWidget->clear();
 	loginToWebGuitarPro();
+}
+
+void SystemTrayMenu::syncFileSystem()
+{
+	WgpFileSystem::instance()->sync();
 }

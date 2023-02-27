@@ -26,6 +26,7 @@ class SystemTrayMenu : public QWidget
 		void loginToWebGuitarPro();
 		void createToolBar();
 		QIcon createProfileIcon();
+		void syncFileSystem();
 
 	public slots:
 		void handleMyCategoriesResult( HttpRequestWorker *worker );
