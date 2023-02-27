@@ -21,7 +21,7 @@ void HttpFileDownloader::fileDownloaded( QNetworkReply* pReply )
 			pReply->deleteLater();
 			emit downloaded( key );
 
-			qDebug() << "FILE DOWNLOADED: " << key << "   (" << m_DownloadedData[key].length() << " BITES)";
+			//qDebug() << "FILE DOWNLOADED: " << key << "   (" << m_DownloadedData[key].length() << " BITES)";
 		}
 	}
 }
