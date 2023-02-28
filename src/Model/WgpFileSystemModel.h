@@ -9,6 +9,7 @@ class WgpFileSystemModel : public QFileSystemModel
 
 	public:
 		WgpFileSystemModel( QObject *parent = nullptr );
+		virtual QVariant data( const QModelIndex &index, int role = Qt::DisplayRole ) const;
 
 };
 

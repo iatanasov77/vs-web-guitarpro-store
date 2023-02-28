@@ -53,14 +53,7 @@ WgpFileSystem *WgpFileSystem::instance()
 
 void WgpFileSystem::createModel()
 {
-	/**
-	 * https://forum.qt.io/topic/102074/icons-in-qfilesystemmodel/9
-	 * https://stackoverflow.com/questions/27587035/qfilesystemmodel-custom-icons
-	 */
 	model	= new WgpFileSystemModel;
-
-	QFileIconProvider *provider	= new QFileIconProvider();
-	model->setIconProvider( provider );
 }
 
 void WgpFileSystem::createWatcher()
@@ -96,7 +89,7 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 				QString categoryPath	= model->rootPath() + "/" + categoryTaxon["name"].toString();
 				if ( ! QDir( categoryPath ).exists() ) {
 					//qDebug() << "PATH NOT EXISTS: " << categoryPath;
-					QDir().mkdir( categoryPath );
+					model->mkdir( model->index( model->rootPath() ), categoryTaxon["name"].toString() );
 				}
 
 				QJsonArray tabs	= jc["tablatures"].toArray();
