@@ -53,7 +53,7 @@ WgpFileSystem *WgpFileSystem::instance()
 void WgpFileSystem::createModel()
 {
 	model			= new WgpFileSystemModel;
-	iconProvider	= new WgpFileIconProvider( model );
+	iconProvider	= new WgpFileIconProvider();
 	watcher			= new QFileSystemWatcher( { model->rootPath() } ) ;
 
 	model->setIconProvider( iconProvider );
