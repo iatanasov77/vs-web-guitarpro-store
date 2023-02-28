@@ -25,7 +25,7 @@ QVariant WgpFileSystemModel::data( const QModelIndex& index, int role ) const
 	QFileInfo info = WgpFileSystemModel::fileInfo( index );
 
 	//if( info.isDir() ) {
-	//if( index == this->index( rootPath() ) ) {
+	if( index == this->index( rootPath() ) ) {
 		switch ( role ) {
 			case QFileSystemModel::FileIconRole:
 			case QFileSystemModel::FilePathRole:
@@ -34,7 +34,7 @@ QVariant WgpFileSystemModel::data( const QModelIndex& index, int role ) const
 				return QPixmap( ":/Resources/icons/logo.png" );
 				break;
 		}
-	//}
+	}
 
 	return QFileSystemModel::data( index, role );
 }

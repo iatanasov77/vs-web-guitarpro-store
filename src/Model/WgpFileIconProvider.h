@@ -4,6 +4,9 @@
 #include <QFileIconProvider>
 #include <QFileInfo>
 
+/**
+ * https://www.makeuseof.com/windows-rebuild-icon-cache/
+ */
 class WgpFileIconProvider : public QFileIconProvider
 {
     public:
