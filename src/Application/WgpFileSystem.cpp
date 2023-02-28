@@ -1,6 +1,7 @@
 #include "WgpFileSystem.h"
 
 #include <QDir>
+#include <QFileIconProvider>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -17,18 +18,8 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 
 	downloader	= new HttpFileDownloader();
 
-	rootPath	= QDir::homePath() + "/WebGuitarPro";
-	if ( ! QDir( rootPath ).exists() ) {
-		QDir().mkdir( rootPath );
-	}
-
+	createModel();
 	createWatcher();
-
-	// TEST
-	/*
-	downloader->download( "http://wgp.lh/api/download/4-SoundOfHeaven.gp3", rootPath + "/SoundOfHeaven.gp3", authHeaders() );
-	downloader->download( "http://wgp.lh/api/download/9-vital_remains_dechristianize.gp4", rootPath + "/vital_remains_dechristianize.gp4", authHeaders() );
-	*/
 
 	connect(
 		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),
@@ -60,9 +51,21 @@ WgpFileSystem *WgpFileSystem::instance()
 	return _instance;
 }
 
+void WgpFileSystem::createModel()
+{
+	/**
+	 * https://forum.qt.io/topic/102074/icons-in-qfilesystemmodel/9
+	 * https://stackoverflow.com/questions/27587035/qfilesystemmodel-custom-icons
+	 */
+	model	= new WgpFileSystemModel;
+
+	QFileIconProvider *provider	= new QFileIconProvider();
+	model->setIconProvider( provider );
+}
+
 void WgpFileSystem::createWatcher()
 {
-	watcher	= new QFileSystemWatcher( { rootPath } ) ;
+	watcher	= new QFileSystemWatcher( { model->rootPath() } ) ;
 
 	connect(
 		watcher, SIGNAL( directoryChanged( QString ) ),
@@ -90,7 +93,7 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 				// Category Name
 				QJsonObject categoryTaxon	= jc["taxon"].toObject();
 
-				QString categoryPath	= rootPath + "/" + categoryTaxon["name"].toString();
+				QString categoryPath	= model->rootPath() + "/" + categoryTaxon["name"].toString();
 				if ( ! QDir( categoryPath ).exists() ) {
 					//qDebug() << "PATH NOT EXISTS: " << categoryPath;
 					QDir().mkdir( categoryPath );
@@ -137,7 +140,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 
 			    // Tablature Original File Name
 				QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
-				QString tablaturePath		= rootPath + "/" + tablatureFile["originalName"].toString();
+				QString tablaturePath		= model->rootPath() + "/" + tablatureFile["originalName"].toString();
 
 				if ( ! QFile::exists( tablaturePath ) ) {
 					//qDebug() << "FILE NOT EXISTS: " << tablaturePath;

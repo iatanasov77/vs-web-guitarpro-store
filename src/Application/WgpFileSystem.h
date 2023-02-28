@@ -6,6 +6,7 @@
 
 #include "ApiManager/HttpRequestWorker.h"
 #include "ApiManager/HttpFileDownloader.h"
+#include "Model/WgpFileSystemModel.h"
 
 class WgpFileSystem : public QObject
 {
@@ -13,13 +14,15 @@ class WgpFileSystem : public QObject
 
 	private:
 		static WgpFileSystem *_instance;
-		QString rootPath;
 		HttpFileDownloader *downloader;
+
+		WgpFileSystemModel *model;
 		QFileSystemWatcher *watcher;
 
 		WgpFileSystem( QObject *_parent = nullptr );
         static WgpFileSystem *createInstance();
 
+        void createModel();
         void createWatcher();
         QMap<QString, QString> authHeaders();
 
