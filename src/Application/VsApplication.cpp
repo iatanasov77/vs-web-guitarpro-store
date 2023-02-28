@@ -24,9 +24,9 @@ VsApplication::VsApplication()
 	m_currLang	= "en";
 
 	#ifdef QT_DEBUG
-		m_apiUrl	= "http://wgp.lh";
+		m_apiUrl	= "http://wgp.lh/api";
 	#else
-		m_apiUrl	= "http://guitarpro.vankosoft.org";
+		m_apiUrl	= "http://guitarpro.vankosoft.org/api";
 	#endif
 }
 

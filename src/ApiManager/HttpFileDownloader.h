@@ -16,7 +16,9 @@ class HttpFileDownloader : public QObject
 		explicit HttpFileDownloader( QObject *parent = nullptr );
 		virtual ~HttpFileDownloader();
 		QByteArray downloadedData( QString target ) const;
+
 		void download( QString url, QString targetPath );
+		void download( QString url, QString targetPath, QMap<QString, QString> headers );
 
 	signals:
 		void downloaded( QString targetPath );

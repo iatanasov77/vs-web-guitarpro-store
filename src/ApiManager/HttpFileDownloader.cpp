@@ -40,6 +40,22 @@ void HttpFileDownloader::download( QString url, QString targetPath )
 	m_WebCtrl.get( request );
 }
 
+void HttpFileDownloader::download( QString url, QString targetPath, QMap<QString, QString> headers )
+{
+	downloadFiles[targetPath] = url;
+
+	QUrl fileUrl( url );
+	QNetworkRequest request( fileUrl );
+
+	if ( ! headers.empty() ) {
+		foreach ( const QString &key, headers.keys() ) {
+			request.setRawHeader( key.toUtf8(), headers.value( key ).toUtf8() );
+		}
+	}
+
+	m_WebCtrl.get( request );
+}
+
 void HttpFileDownloader::writeFile( QString filePath, QByteArray data )
 {
 	files << new QSaveFile( filePath );

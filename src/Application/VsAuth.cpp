@@ -45,7 +45,7 @@ bool VsAuth::isLoggedIn()
 
 bool VsAuth::login( QString username, QString password )
 {
-	QString strUrlLogin	= VsApplication::instance()->apiUrl().append( "/api/login_check" );
+	QString strUrlLogin	= VsApplication::instance()->apiUrl().append( "/login_check" );
 	//qDebug() << strUrlLogin;
 
 	HttpRequestInput input( strUrlLogin, "POST" );

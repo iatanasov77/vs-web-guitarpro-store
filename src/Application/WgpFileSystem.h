@@ -21,6 +21,7 @@ class WgpFileSystem : public QObject
         static WgpFileSystem *createInstance();
 
         void createWatcher();
+        QMap<QString, QString> authHeaders();
 
 	public:
         static WgpFileSystem *instance();
@@ -30,6 +31,7 @@ class WgpFileSystem : public QObject
     public slots:
         void handleMyCategoriesResult( HttpRequestWorker *worker );
         void handleMyTablaturesResult( HttpRequestWorker *worker );
+        void handleDownloadedTablature( QString targetPath );
         void fileModified( QString path );
 
 };
