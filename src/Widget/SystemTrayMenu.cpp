@@ -115,11 +115,11 @@ QIcon SystemTrayMenu::createProfileIcon()
 
 void SystemTrayMenu::displayMyTablatures()
 {
-	bool result = WgpMyTablatures::instance()->getMyTablatures();
-	if ( result ) {
-		// Accept on handleAuthResult
-		// accept();
-	}
+	dirModel	= new WgpFileSystemModel();
+	ui->treeView->setModel( dirModel );
+	ui->treeView->setRootIndex( dirModel->index( dirModel->rootPath() ) );
+
+	WgpMyTablatures::instance()->getMyTablatures();
 
 	connect(
 		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),

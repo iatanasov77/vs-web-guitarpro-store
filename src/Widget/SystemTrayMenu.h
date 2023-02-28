@@ -5,6 +5,7 @@
 #include <QIcon>
 #include <QToolBar>
 #include "ApiManager/HttpRequestWorker.h"
+#include "Model/WgpFileSystemModel.h"
 
 namespace Ui {
 	class SystemTrayMenu;
@@ -22,6 +23,7 @@ class SystemTrayMenu : public QWidget
 	private:
 		Ui::SystemTrayMenu *ui;
 		QToolBar *toolBar;
+		WgpFileSystemModel *dirModel;
 
 		void loginToWebGuitarPro();
 		void createToolBar();
