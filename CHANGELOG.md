@@ -1,3 +1,17 @@
+0.4.0	|	Release date: **01.03.2023**
+============================================
+* New Features and Improvements:
+  - Create WebGuitarPro File System and Root Path Watcher.
+  - Remove Debugs.
+  - Improve Getting API Url.
+  - Create File System File Download.
+  - Create a WgpFileSystemModel Class.
+  - Create WgpFileIconProvider
+  - Add a Directory TreeView.
+  - Create Recurse Logic For Trees.
+  - Set First Tab as Default.
+
+
 0.3.0	|	Release date: **26.02.2023**
 ============================================
 * New Features and Improvements:
