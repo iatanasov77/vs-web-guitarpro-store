@@ -44,7 +44,7 @@ void WgpMyTablatures::handleMyTablaturesResult( HttpRequestWorker *worker )
 	} else if( worker->objectName() == TablaturesRequestTypes[GET_MY_TABLATURES] ) {
 		emit getMyTablaturesFinished( worker );
 	} else {
-		qDebug() << "UNDEFINED MY TABLATURES REQUEST !!!";
+		//qDebug() << "UNDEFINED MY TABLATURES REQUEST !!!";
 	}
 }
 

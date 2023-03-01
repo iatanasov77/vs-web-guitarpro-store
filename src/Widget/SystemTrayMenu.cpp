@@ -8,17 +8,16 @@
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QJsonObject>
 #include <QMessageBox>
-#include <QTreeWidgetItem>
 #include <QtGui/QIcon>
 #include <QDialog>
 
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsAuth.h"
-#include "Application/WgpMyTablatures.h"
 #include "Application/VsSettings.h"
+#include "Application/WgpMyTablatures.h"
+#include "Application/WgpFileSystem.h"
 
 #include "Dialog/UserLoginDialog.h"
 
@@ -36,6 +35,7 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		createToolBar();
 		displayMyTablatures();
+		syncFileSystem();
 	} else {
 		loginToWebGuitarPro();
 	}
@@ -55,6 +55,7 @@ void SystemTrayMenu::loginToWebGuitarPro()
 	{
 		createToolBar();
 		displayMyTablatures();
+		syncFileSystem();
 	}
 }
 
@@ -112,11 +113,11 @@ QIcon SystemTrayMenu::createProfileIcon()
 
 void SystemTrayMenu::displayMyTablatures()
 {
-	bool result = WgpMyTablatures::instance()->getMyTablatures();
-	if ( result ) {
-		// Accept on handleAuthResult
-		// accept();
-	}
+	dirModel	= new WgpFileSystemModel();
+	ui->treeView->setModel( dirModel );
+	ui->treeView->setRootIndex( dirModel->index( dirModel->rootPath() ) );
+
+	WgpMyTablatures::instance()->getMyTablatures();
 
 	connect(
 		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),
@@ -127,6 +128,48 @@ void SystemTrayMenu::displayMyTablatures()
 		WgpMyTablatures::instance(), SIGNAL( getMyTablaturesFinished( HttpRequestWorker* ) ),
 		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
 	);
+}
+
+QTreeWidgetItem *SystemTrayMenu::_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem )
+{
+	//QTreeWidgetItem *treeItem	= new QTreeWidgetItem( static_cast<QTreeWidget *>(nullptr) );
+	QTreeWidgetItem *treeItem	= new QTreeWidgetItem( parentItem );
+
+	// Category Name
+	QJsonObject categoryTaxon	= jc["taxon"].toObject();
+	treeItem->setText( 0, categoryTaxon["name"].toString() );
+
+	QJsonArray children	= jc["children"].toArray();
+	for( int i = 0; i < children.size(); i++ ) {
+		QJsonObject child	= children[i].toObject();
+
+		_createTreeWidgetItems( child, treeItem );
+	}
+
+	QJsonArray tabs	= jc["tablatures"].toArray();
+	for( int j = 0; j < tabs.size(); j++ ) {
+		QJsonObject jt	= tabs[j].toObject();
+		QTreeWidgetItem *childItem	= new QTreeWidgetItem( treeItem );
+
+		// Tablature Name
+		childItem->setText( 0, jt["artist"].toString() + " - " + jt["song"].toString() );
+
+		// Tablature Original File Name
+		QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
+		childItem->setText( 1, tablatureFile["originalName"].toString() );
+
+		// Tablature Is Public
+		QPixmap oPixmap( 32,32 );
+		if ( jt["enabled"] == true ) {
+			oPixmap.load ( ":/Resources/icons/Symbol_OK.svg" );
+		} else {
+			oPixmap.load ( ":/Resources/icons/Symbol_NO.svg" );
+		}
+		QIcon oIcon( oPixmap );
+		childItem->setIcon( 2, oIcon );
+	}
+
+	return treeItem;
 }
 
 void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
@@ -140,41 +183,18 @@ void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 			QJsonArray results	= doc.array();
 			QList<QTreeWidgetItem *> items;
 			QTreeWidgetItem *treeItem;
-			QTreeWidgetItem *childItem;
 
 			for( int i = 0; i < results.size(); i++ ) {
 				QJsonObject jc	= results[i].toObject();
-				treeItem = new QTreeWidgetItem( static_cast<QTreeWidget *>(nullptr) );
+				if ( jc.contains( "parent" ) )
+					continue;
 
-				// Category Name
-				QJsonObject categoryTaxon	= jc["taxon"].toObject();
-				treeItem->setText( 0, categoryTaxon["name"].toString() );
-
-				QJsonArray tabs	= jc["tablatures"].toArray();
-				for( int j = 0; j < tabs.size(); j++ ) {
-					QJsonObject jt	= tabs[j].toObject();
-					childItem = new QTreeWidgetItem( treeItem );
-
-					// Tablature Name
-					childItem->setText( 0, jt["artist"].toString() + " - " + jt["song"].toString() );
-
-					// Tablature Original File Name
-					QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
-					childItem->setText( 1, tablatureFile["originalName"].toString() );
-
-					// Tablature Is Public
-					QPixmap oPixmap( 32,32 );
-					if ( jt["enabled"] == true ) {
-						oPixmap.load ( ":/Resources/icons/Symbol_OK.svg" );
-					} else {
-						oPixmap.load ( ":/Resources/icons/Symbol_NO.svg" );
-					}
-					QIcon oIcon( oPixmap );
-					childItem->setIcon( 2, oIcon );
+				treeItem	= _createTreeWidgetItems( jc );
+				if ( ! treeItem->parent() ) {
+					items.append( treeItem );
 				}
-
-				items.append( treeItem );
 			}
+
 			//ui->treeWidget->insertTopLevelItems( 0, items );
 			ui->treeWidget->addTopLevelItems( items );
 		}
@@ -238,4 +258,9 @@ void SystemTrayMenu::logout()
 	toolBar->clear();
 	ui->treeWidget->clear();
 	loginToWebGuitarPro();
+}
+
+void SystemTrayMenu::syncFileSystem()
+{
+	WgpFileSystem::instance()->sync();
 }

@@ -4,7 +4,11 @@
 #include <QWidget>
 #include <QIcon>
 #include <QToolBar>
+#include <QTreeWidgetItem>
+#include <QJsonObject>
+
 #include "ApiManager/HttpRequestWorker.h"
+#include "Model/WgpFileSystemModel.h"
 
 namespace Ui {
 	class SystemTrayMenu;
@@ -22,10 +26,13 @@ class SystemTrayMenu : public QWidget
 	private:
 		Ui::SystemTrayMenu *ui;
 		QToolBar *toolBar;
+		WgpFileSystemModel *dirModel;
 
 		void loginToWebGuitarPro();
 		void createToolBar();
 		QIcon createProfileIcon();
+		void syncFileSystem();
+		QTreeWidgetItem *_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem = nullptr );
 
 	public slots:
 		void handleMyCategoriesResult( HttpRequestWorker *worker );
