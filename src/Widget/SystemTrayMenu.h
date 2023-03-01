@@ -4,6 +4,9 @@
 #include <QWidget>
 #include <QIcon>
 #include <QToolBar>
+#include <QTreeWidgetItem>
+#include <QJsonObject>
+
 #include "ApiManager/HttpRequestWorker.h"
 #include "Model/WgpFileSystemModel.h"
 
@@ -29,6 +32,7 @@ class SystemTrayMenu : public QWidget
 		void createToolBar();
 		QIcon createProfileIcon();
 		void syncFileSystem();
+		QTreeWidgetItem *_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem = nullptr );
 
 	public slots:
 		void handleMyCategoriesResult( HttpRequestWorker *worker );

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QFileSystemWatcher>
+#include <QJsonObject>
 
 #include "ApiManager/HttpRequestWorker.h"
 #include "ApiManager/HttpFileDownloader.h"
@@ -26,6 +27,7 @@ class WgpFileSystem : public QObject
 
         void createModel();
         QMap<QString, QString> authHeaders();
+        void _createCategories( QJsonObject jc, QString path );
 
 	public:
         static WgpFileSystem *instance();

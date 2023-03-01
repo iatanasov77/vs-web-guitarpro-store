@@ -4,7 +4,6 @@
 #include <QFileIconProvider>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QJsonObject>
 
 #include "VsApplication.h"
 #include "VsSettings.h"
@@ -69,6 +68,48 @@ void WgpFileSystem::sync()
 	//WgpMyTablatures::instance()->getMyTablatures();
 }
 
+/**
+ * QJsonObject jc - Parent Category
+ */
+void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
+{
+	// Category Name
+	QJsonObject categoryTaxon	= jc["taxon"].toObject();
+
+	QString categoryPath	= path + "/" + categoryTaxon["name"].toString();
+	if ( ! QDir( categoryPath ).exists() ) {
+		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
+		model->mkdir( model->index( path ), categoryTaxon["name"].toString() );
+	}
+
+	QJsonArray children	= jc["children"].toArray();
+	for( int i = 0; i < children.size(); i++ ) {
+		QJsonObject child	= children[i].toObject();
+
+		_createCategories( child, categoryPath );
+	}
+
+	QJsonArray tabs	= jc["tablatures"].toArray();
+	for( int j = 0; j < tabs.size(); j++ ) {
+		QJsonObject jt	= tabs[j].toObject();
+
+		// Tablature Original File Name
+		QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
+		QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
+
+		if ( ! QFile::exists( tablaturePath ) ) {
+			//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
+
+			QString fileUrl	= QString( "%1/download/%2-%3" )
+								.arg( VsApplication::instance()->apiUrl() )
+								.arg( jt["id"].toInt() )
+								.arg( tablatureFile["originalName"].toString() );
+			//qDebug() << "TAB URL: " << fileUrl;
+			downloader->download( fileUrl, tablaturePath, authHeaders() );
+		}
+	}
+}
+
 void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
 	if ( worker->errorType == QNetworkReply::NoError ) {
@@ -80,35 +121,10 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 
 			for( int i = 0; i < results.size(); i++ ) {
 				QJsonObject jc	= results[i].toObject();
+				if ( jc.contains( "parent" ) )
+					continue;
 
-				// Category Name
-				QJsonObject categoryTaxon	= jc["taxon"].toObject();
-
-				QString categoryPath	= model->rootPath() + "/" + categoryTaxon["name"].toString();
-				if ( ! QDir( categoryPath ).exists() ) {
-					//qDebug() << "PATH NOT EXISTS: " << categoryPath;
-					model->mkdir( model->index( model->rootPath() ), categoryTaxon["name"].toString() );
-				}
-
-				QJsonArray tabs	= jc["tablatures"].toArray();
-				for( int j = 0; j < tabs.size(); j++ ) {
-					QJsonObject jt	= tabs[j].toObject();
-
-					// Tablature Original File Name
-					QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
-					QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
-
-					if ( ! QFile::exists( tablaturePath ) ) {
-						//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
-
-						QString fileUrl	= QString( "%1/download/%2-%3" )
-											.arg( VsApplication::instance()->apiUrl() )
-											.arg( jt["id"].toInt() )
-											.arg( tablatureFile["originalName"].toString() );
-						//qDebug() << "TAB URL: " << fileUrl;
-						downloader->download( fileUrl, tablaturePath, authHeaders() );
-					}
-				}
+				_createCategories( jc, model->rootPath() );
 			}
 		}
 	}
