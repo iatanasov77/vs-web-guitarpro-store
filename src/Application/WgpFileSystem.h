@@ -9,6 +9,7 @@
 #include "ApiManager/HttpFileDownloader.h"
 #include "Model/WgpFileSystemModel.h"
 #include "Model/WgpFileIconProvider.h"
+#include "WgpFileSystemMeta.h"
 
 class WgpFileSystem : public QObject
 {
@@ -21,11 +22,13 @@ class WgpFileSystem : public QObject
 		WgpFileSystemModel *model;
 		WgpFileIconProvider *iconProvider;
 		QFileSystemWatcher *watcher;
+		WgpFileSystemMeta *meta;
 
 		WgpFileSystem( QObject *_parent = nullptr );
         static WgpFileSystem *createInstance();
 
         void createModel();
+        void createMeta();
         QMap<QString, QString> authHeaders();
         void _createCategories( QJsonObject jc, QString path );
 
