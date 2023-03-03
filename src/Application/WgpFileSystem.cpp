@@ -31,6 +31,11 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	);
 
 	connect(
+		WgpMyTablatures::instance(), SIGNAL( serverLoadFinished() ),
+		this, SLOT( serverLoadFinished() )
+	);
+
+	connect(
 		downloader, SIGNAL( downloaded( QString ) ),
 		this, SLOT( handleDownloadedTablature( QString ) )
 	);
@@ -124,7 +129,7 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 
 		if ( doc.isArray() ) {
 			QJsonArray results	= doc.array();
-			meta->appendToMeta( results );
+			meta->appendToServerMeta( results );
 
 			for( int i = 0; i < results.size(); i++ ) {
 				QJsonObject jc	= results[i].toObject();
@@ -148,7 +153,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 
 		if ( doc.isArray() ) {
 			QJsonArray results	= doc.array();
-			meta->appendToMeta( results );
+			meta->appendToServerMeta( results );
 
 			for( int i = 0; i < results.size(); i++ ) {
 			    QJsonObject jt	= results[i].toObject();
@@ -170,6 +175,18 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 			}
 		}
 	}
+}
+
+void WgpFileSystem::serverLoadFinished()
+{
+	qDebug() << "META DIFFERENCES \n=============================\n";
+
+	QStringList list	= meta->compareMeta();
+	for ( const auto& i : list  )
+	{
+	    qDebug() << i;
+	}
+
 }
 
 void WgpFileSystem::handleDownloadedTablature( QString targetPath )

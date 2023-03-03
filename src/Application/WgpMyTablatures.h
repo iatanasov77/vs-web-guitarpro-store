@@ -39,6 +39,7 @@ class WgpMyTablatures : public QObject
 	signals:
 		void getMyCategoriesFinished( HttpRequestWorker* );
 		void getMyTablaturesFinished( HttpRequestWorker* );
+		void serverLoadFinished();
 };
 
 #endif // WGP_MYTABLATURES_H

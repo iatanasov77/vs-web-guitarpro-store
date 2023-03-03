@@ -2,6 +2,7 @@
 #define SRC_APPLICATION_WGPFILESYSTEMMETA_H_
 
 #include <QString>
+#include <QStringList>
 #include <QJsonDocument>
 #include <QJsonArray>
 
@@ -12,14 +13,21 @@ class WgpFileSystemMeta
 	private:
 		WgpFileSystemModel *_model;
 		QString _metaPath;
-		QJsonArray metaJson;
+		QJsonArray metaServerJson;
+		QJsonArray metaLocalJson;
+		QStringList m_differences;
+
+		void compareObjects( QStringList keyStack, const QJsonObject obj1, const QJsonObject obj2 );
+		void compareArrays( QStringList keyStack, const QJsonArray arr1, const QJsonArray arr2 );
+		void compareValues( QStringList keyStack, const QJsonValue val1, const QJsonValue val2 );
 
 	public:
 		WgpFileSystemMeta( WgpFileSystemModel *model );
 
 		QJsonDocument loadMetaJson();
 		void saveMetaJson( QJsonDocument document );
-		void appendToMeta( QJsonArray arr );
+		void appendToServerMeta( QJsonArray arr );
+		QStringList compareMeta();
 };
 
 #endif /* SRC_APPLICATION_WGPFILESYSTEMMETA_H_ */

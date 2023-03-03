@@ -40,6 +40,7 @@ class WgpFileSystem : public QObject
     public slots:
         void handleMyCategoriesResult( HttpRequestWorker *worker );
         void handleMyTablaturesResult( HttpRequestWorker *worker );
+        void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
         void fileModified( QString path );
 
