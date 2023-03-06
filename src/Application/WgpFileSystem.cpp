@@ -76,6 +76,9 @@ void WgpFileSystem::createModel()
 	);
 }
 
+/**
+ * https://doc.qt.io/qt-6/qdiriterator.html
+ */
 void WgpFileSystem::initWatcher()
 {
 	QDirIterator it( model->rootPath(), QDirIterator::Subdirectories );
