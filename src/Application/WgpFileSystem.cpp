@@ -18,7 +18,6 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	downloader	= new HttpFileDownloader();
 
 	createModel();
-	createMeta();
 
 	connect(
 		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),
@@ -60,6 +59,7 @@ void WgpFileSystem::createModel()
 	model			= new WgpFileSystemModel;
 	iconProvider	= new WgpFileIconProvider();
 	watcher			= new QFileSystemWatcher( { model->rootPath() } ) ;
+	meta			= new WgpFileSystemMeta( model );
 
 	model->setIconProvider( iconProvider );
 
@@ -67,11 +67,6 @@ void WgpFileSystem::createModel()
 		watcher, SIGNAL( directoryChanged( QString ) ),
 		this, SLOT( fileModified( QString ) )
 	);
-}
-
-void WgpFileSystem::createMeta()
-{
-	meta	= new WgpFileSystemMeta( model );
 }
 
 void WgpFileSystem::sync()
