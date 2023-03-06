@@ -1,6 +1,7 @@
 #include "WgpFileSystem.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFileIconProvider>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -30,6 +31,11 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	);
 
 	connect(
+		WgpMyTablatures::instance(), SIGNAL( serverLoadFinished() ),
+		this, SLOT( serverLoadFinished() )
+	);
+
+	connect(
 		downloader, SIGNAL( downloaded( QString ) ),
 		this, SLOT( handleDownloadedTablature( QString ) )
 	);
@@ -54,13 +60,34 @@ void WgpFileSystem::createModel()
 	model			= new WgpFileSystemModel;
 	iconProvider	= new WgpFileIconProvider();
 	watcher			= new QFileSystemWatcher( { model->rootPath() } ) ;
+	meta			= new WgpFileSystemMeta( model );
 
 	model->setIconProvider( iconProvider );
+	initWatcher();
 
 	connect(
 		watcher, SIGNAL( directoryChanged( QString ) ),
 		this, SLOT( fileModified( QString ) )
 	);
+
+	connect(
+		watcher, SIGNAL(  fileChanged( QString ) ),
+		this, SLOT( fileModified( QString ) )
+	);
+}
+
+/**
+ * https://doc.qt.io/qt-6/qdiriterator.html
+ */
+void WgpFileSystem::initWatcher()
+{
+	QDirIterator it( model->rootPath(), QDirIterator::Subdirectories );
+	while ( it.hasNext() ) {
+	    QString categoryPath = it.next();
+	    qDebug() << categoryPath;
+
+	    watcher->addPath( categoryPath );
+	}
 }
 
 void WgpFileSystem::sync()
@@ -79,7 +106,9 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	QString categoryPath	= path + "/" + categoryTaxon["name"].toString();
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
+
 		model->mkdir( model->index( path ), categoryTaxon["name"].toString() );
+		watcher->addPath( categoryPath );
 	}
 
 	QJsonArray children	= jc["children"].toArray();
@@ -115,9 +144,11 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 	if ( worker->errorType == QNetworkReply::NoError ) {
 		// communication was successful
 		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+		meta->clearMeta();
 
 		if ( doc.isArray() ) {
 			QJsonArray results	= doc.array();
+			meta->appendToServerMeta( results );
 
 			for( int i = 0; i < results.size(); i++ ) {
 				QJsonObject jc	= results[i].toObject();
@@ -141,6 +172,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 
 		if ( doc.isArray() ) {
 			QJsonArray results	= doc.array();
+			meta->appendToServerMeta( results );
 
 			for( int i = 0; i < results.size(); i++ ) {
 			    QJsonObject jt	= results[i].toObject();
@@ -164,14 +196,26 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 	}
 }
 
+void WgpFileSystem::serverLoadFinished()
+{
+	qDebug() << "META DIFFERENCES \n=============================\n";
+
+	QStringList list	= meta->compareMeta();
+	for ( const auto& i : list  )
+	{
+	    qDebug() << i;
+	}
+
+}
+
 void WgpFileSystem::handleDownloadedTablature( QString targetPath )
 {
-	Q_UNUSED( targetPath );
+	watcher->addPath( targetPath );
 }
 
 void WgpFileSystem::fileModified( QString path )
 {
-	qDebug() << "Directory Modified: " << path;
+	qDebug() << "Path Modified: " << path;
 }
 
 QMap<QString, QString> WgpFileSystem::authHeaders()

@@ -43,6 +43,7 @@ void WgpMyTablatures::handleMyTablaturesResult( HttpRequestWorker *worker )
 		_getMyTablaturesUncategorized();	// Should To Be Here
 	} else if( worker->objectName() == TablaturesRequestTypes[GET_MY_TABLATURES] ) {
 		emit getMyTablaturesFinished( worker );
+		emit serverLoadFinished();
 	} else {
 		//qDebug() << "UNDEFINED MY TABLATURES REQUEST !!!";
 	}
