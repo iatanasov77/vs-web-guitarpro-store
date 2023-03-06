@@ -85,6 +85,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	QString categoryPath	= path + "/" + categoryTaxon["name"].toString();
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
+		watcher->addPath( categoryPath );
 		model->mkdir( model->index( path ), categoryTaxon["name"].toString() );
 	}
 
@@ -105,6 +106,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 
 		if ( ! QFile::exists( tablaturePath ) ) {
 			//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
+			watcher->addPath( tablaturePath );
 
 			QString fileUrl	= QString( "%1/download/%2-%3" )
 								.arg( VsApplication::instance()->apiUrl() )
@@ -159,6 +161,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 
 				if ( ! QFile::exists( tablaturePath ) ) {
 					//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
+					watcher->addPath( tablaturePath );
 
 					QString fileUrl	= QString( "%1/download/%2-%3" )
 										.arg( VsApplication::instance()->apiUrl() )
