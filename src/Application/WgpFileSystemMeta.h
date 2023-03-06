@@ -27,6 +27,7 @@ class WgpFileSystemMeta
 		QJsonDocument loadMetaJson();
 		void saveMetaJson( QJsonDocument document );
 		void appendToServerMeta( QJsonArray arr );
+		void clearMeta();
 		QStringList compareMeta();
 };
 

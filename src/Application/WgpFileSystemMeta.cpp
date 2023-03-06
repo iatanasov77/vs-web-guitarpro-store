@@ -50,6 +50,17 @@ void WgpFileSystemMeta::appendToServerMeta( QJsonArray arr )
 	saveMetaJson( QJsonDocument::fromVariant( metaServerJson.toVariantList() ) );
 }
 
+void WgpFileSystemMeta::clearMeta()
+{
+	while( metaServerJson.count() ) {
+		metaServerJson.pop_back();
+	}
+
+	while( metaLocalJson.count() ) {
+		metaLocalJson.pop_back();
+	}
+}
+
 QStringList WgpFileSystemMeta::compareMeta()
 {
 	if ( metaLocalJson.isEmpty() ) {

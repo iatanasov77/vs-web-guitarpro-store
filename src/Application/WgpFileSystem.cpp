@@ -123,6 +123,7 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 	if ( worker->errorType == QNetworkReply::NoError ) {
 		// communication was successful
 		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+		meta->clearMeta();
 
 		if ( doc.isArray() ) {
 			QJsonArray results	= doc.array();
