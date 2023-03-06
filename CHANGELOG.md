@@ -1,3 +1,13 @@
+0.4.1	|	Release date: **06.03.2023**
+============================================
+* New Features and Improvements:
+  - Make FileSystem MetaData Class.
+  - Add Compare Functionality Of WgpFileSystem Meta.
+  - Litle Refactoring.
+  - Add All Folders and Files to Watcher.
+  - Improve WgpFileSystemMeta
+
+
 0.4.0	|	Release date: **01.03.2023**
 ============================================
 * New Features and Improvements:
