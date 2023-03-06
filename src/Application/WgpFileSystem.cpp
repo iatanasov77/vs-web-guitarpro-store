@@ -1,6 +1,7 @@
 #include "WgpFileSystem.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFileIconProvider>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -62,6 +63,7 @@ void WgpFileSystem::createModel()
 	meta			= new WgpFileSystemMeta( model );
 
 	model->setIconProvider( iconProvider );
+	initWatcher();
 
 	connect(
 		watcher, SIGNAL( directoryChanged( QString ) ),
@@ -72,6 +74,17 @@ void WgpFileSystem::createModel()
 		watcher, SIGNAL(  fileChanged( QString ) ),
 		this, SLOT( fileModified( QString ) )
 	);
+}
+
+void WgpFileSystem::initWatcher()
+{
+	QDirIterator it( model->rootPath(), QDirIterator::Subdirectories );
+	while ( it.hasNext() ) {
+	    QString categoryPath = it.next();
+	    qDebug() << categoryPath;
+
+	    watcher->addPath( categoryPath );
+	}
 }
 
 void WgpFileSystem::sync()

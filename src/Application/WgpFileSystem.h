@@ -28,6 +28,7 @@ class WgpFileSystem : public QObject
         static WgpFileSystem *createInstance();
 
         void createModel();
+        void initWatcher();
         QMap<QString, QString> authHeaders();
         void _createCategories( QJsonObject jc, QString path );
 
