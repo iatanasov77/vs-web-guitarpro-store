@@ -24,9 +24,9 @@ VsApplication::VsApplication()
 	m_currLang	= "en";
 
 	#ifdef QT_DEBUG
-		m_apiUrl	= "http://wgp.lh/api";
+		m_apiUrl	= "http://api.wgp.lh/api";
 	#else
-		m_apiUrl	= "http://guitarpro.vankosoft.org/api";
+		m_apiUrl	= "http://api.guitarpro.vankosoft.org/api";
 	#endif
 }
 
@@ -44,6 +44,11 @@ VsApplication *VsApplication::instance() {
 	//return Singleton<VsApplication>::instance( VsApplication::createInstance() );
 }
 
+/**
+ * Linux Path
+ * ----------
+ * ~/.local/share/WebGuitarProStore/
+ */
 QDir VsApplication::dataPath()
 {
 	//QDir dataPath{ QStandardPaths::writableLocation( QStandardPaths::AppDataLocation ) };
