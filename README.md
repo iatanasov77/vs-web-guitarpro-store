@@ -1,4 +1,4 @@
-# vs-web-guitarpro-store
+# WebGuitarProStore
 Web Guitar Pro Store Synchronisation
 
 ## I. Howto Build Application
