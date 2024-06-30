@@ -17,3 +17,9 @@ Web Guitar Pro Store Synchronisation
     qmake
 	make
   ```
+  
+  - Build Translations
+  
+  ```bash
+    lrelease QWebGuitarProStore.pro
+  ```
