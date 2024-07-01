@@ -5,6 +5,10 @@
 #include <QBuffer>
 #include <QSaveFile>
 
+// Needed For Debug
+#include <QJsonDocument>
+#include <QJsonArray>
+
 #include "GlobalTypes.h"
 #include "ApiManager/HttpRequest.h"
 #include "ApiManager/JsonRequest.h"
@@ -34,6 +38,8 @@ void HttpRequestWorker::execute( HttpRequestInput *input )
 
 	requestWrapper->createRequest();
 	_sendRequest( requestWrapper );
+
+	qDebug() << "HttpRequestWorker Sending Request With Input ...";
 }
 
 void HttpRequestWorker::execute( HttpRequestInput *input, QMap<QString, QString> headers )
@@ -55,6 +61,8 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QMap<QString, QString>
 	}
 
 	_sendRequest( requestWrapper );
+
+	qDebug() << "HttpRequestWorker Sending Request With Input and Headers ...";
 }
 
 void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName )
@@ -93,6 +101,8 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 	}
 
 	_sendRequest( requestWrapper );
+
+	qDebug() << "HttpRequestWorker Sending Request With Input, RequestName and Headers ...";
 }
 
 void HttpRequestWorker::resetWorker()
@@ -111,6 +121,8 @@ void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
     errorType = reply->error();
     if ( errorType == QNetworkReply::NoError ) {
         response = reply->readAll();
+
+        debugNetworkReplyResponse( "HttpRequestWorker::onManagerFinished", response );
     }
     else {
         errorStr = reply->errorString();
@@ -129,6 +141,15 @@ void HttpRequestWorker::debugNetworkReply( QNetworkReply *reply )
 	file.open( QIODevice::WriteOnly );
 	file.write( reply->readAll() );
 	file.commit(); // Calling commit() is mandatory, otherwise nothing will be written.
+}
+
+void HttpRequestWorker::debugNetworkReplyResponse( QString debugFrom, QByteArray baResponse )
+{
+	QJsonDocument doc	= QJsonDocument::fromJson( baResponse );
+	QJsonArray results	= doc.array();
+
+	QString debugString	= QString( "'%1' Result Size: %2" ).arg( debugFrom ).arg( results.size() );
+	qDebug() << debugString;
 }
 
 void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper )

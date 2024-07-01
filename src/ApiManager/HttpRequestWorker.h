@@ -39,6 +39,7 @@ class HttpRequestWorker : public QObject
 		void resetWorker();
 		void _sendRequest( AbstractRequest *requestWrapper );
 		void debugNetworkReply( QNetworkReply *reply );
+		void debugNetworkReplyResponse( QString debugFrom, QByteArray response );
 
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );

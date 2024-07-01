@@ -92,7 +92,7 @@ void WgpFileSystem::initWatcher()
 
 void WgpFileSystem::sync()
 {
-	//WgpMyTablatures::instance()->getMyTablatures();
+	WgpMyTablatures::instance()->getMyTablatures();
 }
 
 /**
@@ -102,6 +102,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 {
 	// Category Name
 	QJsonObject categoryTaxon	= jc["taxon"].toObject();
+	qDebug() << "Create Category: " << categoryTaxon["name"];
 
 	QString categoryPath	= path + "/" + categoryTaxon["name"].toString();
 	if ( ! QDir( categoryPath ).exists() ) {
@@ -142,21 +143,22 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
 	if ( worker->errorType == QNetworkReply::NoError ) {
+		//qDebug() << "'WgpFileSystem::handleMyCategoriesResult' Running ...";
+
 		// communication was successful
 		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
 		meta->clearMeta();
 
-		if ( doc.isArray() ) {
-			QJsonArray results	= doc.array();
-			meta->appendToServerMeta( results );
+		QJsonArray results	= doc.array();
+		meta->appendToServerMeta( results );
 
-			for( int i = 0; i < results.size(); i++ ) {
-				QJsonObject jc	= results[i].toObject();
-				if ( jc.contains( "parent" ) )
-					continue;
+		//qDebug() << "'WgpFileSystem::handleMyCategoriesResult' Result Size: " << results.size();
+		for( int i = 0; i < results.size(); i++ ) {
+			QJsonObject jc	= results[i].toObject();
+			if ( jc.contains( "parent" ) )
+				continue;
 
-				_createCategories( jc, model->rootPath() );
-			}
+			_createCategories( jc, model->rootPath() );
 		}
 	}
 }

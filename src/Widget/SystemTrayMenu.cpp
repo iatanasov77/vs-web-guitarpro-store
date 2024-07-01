@@ -179,25 +179,24 @@ void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 		// communication was successful
 		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
 
-		if ( doc.isArray() ) {
-			QJsonArray results	= doc.array();
-			QList<QTreeWidgetItem *> items;
-			QTreeWidgetItem *treeItem;
+		QJsonArray results	= doc.array();
+		QList<QTreeWidgetItem *> items;
+		QTreeWidgetItem *treeItem;
 
-			for( int i = 0; i < results.size(); i++ ) {
-				QJsonObject jc	= results[i].toObject();
-				if ( jc.contains( "parent" ) )
-					continue;
+		qDebug() << "'SystemTrayMenu::handleMyCategoriesResult' Result Size: " << results.size();
+		for( int i = 0; i < results.size(); i++ ) {
+			QJsonObject jc	= results[i].toObject();
+			if ( jc.contains( "parent" ) )
+				continue;
 
-				treeItem	= _createTreeWidgetItems( jc );
-				if ( ! treeItem->parent() ) {
-					items.append( treeItem );
-				}
+			treeItem	= _createTreeWidgetItems( jc );
+			if ( ! treeItem->parent() ) {
+				items.append( treeItem );
 			}
-
-			//ui->treeWidget->insertTopLevelItems( 0, items );
-			ui->treeWidget->addTopLevelItems( items );
 		}
+
+		//ui->treeWidget->insertTopLevelItems( 0, items );
+		ui->treeWidget->addTopLevelItems( items );
 	}
 	else {
 		// an error occurred

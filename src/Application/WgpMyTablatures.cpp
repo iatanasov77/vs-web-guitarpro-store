@@ -2,6 +2,8 @@
 
 #include <QString>
 #include <QVariant>
+#include <QDebug>
+
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsAuth.h"
@@ -54,6 +56,7 @@ bool WgpMyTablatures::getMyTablatures()
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		//_getMyTablatures();
 		_getMyCategories();
+		//qDebug() << "WgpMyTablatures::getMyTablatures() Running ...";
 
 		return true;
 	}
