@@ -24,10 +24,9 @@ class HttpRequestWorker : public QObject
 		QNetworkReply::NetworkError errorType;
 		QString errorStr;
 		QString requestName;
+		QString lastFinishedequest;
 
 		explicit HttpRequestWorker( QObject *parent = 0 );
-		void execute( HttpRequestInput *input );
-		void execute( HttpRequestInput *input, QMap<QString, QString> headers );
 		void execute( HttpRequestInput *input, QString strRequestName );
 		void execute( HttpRequestInput *input, QString strRequestName, QMap<QString, QString> headers );
 
@@ -36,6 +35,7 @@ class HttpRequestWorker : public QObject
 
 	private:
 		QNetworkAccessManager *manager;
+		QList<QMap<QString, QVariant>> commandStack;
 		void resetWorker();
 		void _sendRequest( AbstractRequest *requestWrapper );
 		void debugNetworkReply( QNetworkReply *reply );
@@ -43,6 +43,7 @@ class HttpRequestWorker : public QObject
 
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );
+		void sendNextRequest( HttpRequestWorker *worker );
 
 };
 

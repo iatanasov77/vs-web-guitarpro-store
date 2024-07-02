@@ -5,7 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-JsonRequest::JsonRequest( HttpRequestInput *input ) : AbstractRequest( input ) { }
+JsonRequest::JsonRequest( HttpRequestInput *input,  QObject *parent ) : AbstractRequest( input, parent ) { }
 
 QNetworkRequest *JsonRequest::createRequest()
 {

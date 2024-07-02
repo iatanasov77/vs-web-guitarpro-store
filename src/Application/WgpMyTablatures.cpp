@@ -77,7 +77,7 @@ void WgpMyTablatures::_getMyTablatures()
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
 	m_httpRequestWorker->setObjectName( TablaturesRequestTypes[GET_MY_TABLATURES] );
-	m_httpRequestWorker->execute( &input, headers );
+	m_httpRequestWorker->execute( &input, "Get MyTablatures Request", headers );
 }
 
 void WgpMyTablatures::_getMyCategories()
@@ -93,7 +93,7 @@ void WgpMyTablatures::_getMyCategories()
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
 	m_httpRequestWorker->setObjectName( TablaturesRequestTypes[GET_MY_CATEGORIES] );
-	m_httpRequestWorker->execute( &input, headers );
+	m_httpRequestWorker->execute( &input, "Get MyCategories Request", headers );
 }
 
 void WgpMyTablatures::_getMyTablaturesUncategorized()
@@ -109,5 +109,5 @@ void WgpMyTablatures::_getMyTablaturesUncategorized()
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
 	m_httpRequestWorker->setObjectName( TablaturesRequestTypes[GET_MY_TABLATURES] );
-	m_httpRequestWorker->execute( &input, headers );
+	m_httpRequestWorker->execute( &input, "Get MyTablaturesUncategorized Request", headers );
 }

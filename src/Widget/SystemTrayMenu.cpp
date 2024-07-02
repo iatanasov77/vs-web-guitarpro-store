@@ -183,7 +183,7 @@ void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 		QList<QTreeWidgetItem *> items;
 		QTreeWidgetItem *treeItem;
 
-		qDebug() << "'SystemTrayMenu::handleMyCategoriesResult' Result Size: " << results.size();
+		//qDebug() << "'SystemTrayMenu::handleMyCategoriesResult' Result Size: " << results.size();
 		for( int i = 0; i < results.size(); i++ ) {
 			QJsonObject jc	= results[i].toObject();
 			if ( jc.contains( "parent" ) )

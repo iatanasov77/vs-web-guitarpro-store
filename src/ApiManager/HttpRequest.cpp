@@ -6,7 +6,7 @@
 
 #include "GlobalTypes.h"
 
-HttpRequest::HttpRequest( HttpRequestInput *input ) : AbstractRequest( input ) { }
+HttpRequest::HttpRequest( HttpRequestInput *input,  QObject *parent ) : AbstractRequest( input, parent ) { }
 
 QNetworkRequest *HttpRequest::createRequest()
 {

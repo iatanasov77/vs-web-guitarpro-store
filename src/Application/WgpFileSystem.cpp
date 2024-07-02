@@ -143,8 +143,6 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
 	if ( worker->errorType == QNetworkReply::NoError ) {
-		//qDebug() << "'WgpFileSystem::handleMyCategoriesResult' Running ...";
-
 		// communication was successful
 		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
 		meta->clearMeta();
@@ -152,7 +150,6 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 		QJsonArray results	= doc.array();
 		meta->appendToServerMeta( results );
 
-		//qDebug() << "'WgpFileSystem::handleMyCategoriesResult' Result Size: " << results.size();
 		for( int i = 0; i < results.size(); i++ ) {
 			QJsonObject jc	= results[i].toObject();
 			if ( jc.contains( "parent" ) )
