@@ -6,6 +6,9 @@ enum HttpRequestType { REQUEST_TYPE_HTTP , REQUEST_TYPE_JSON };
 
 #include <QMap>
 #include <QString>
+#include <QMetaType>
+
+Q_DECLARE_METATYPE( HttpRequestType )
 
 static QMap<QString, QString> SettingsGroups {
 	{"authentication", "Authentication"},

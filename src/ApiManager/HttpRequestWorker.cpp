@@ -80,8 +80,9 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 		}
 	}
 
-	command["request"]	= QVariant::fromValue( requestWrapper );
-	command["executed"]	= QVariant( false );
+	command["requestType"]	= QVariant( input->requestType );
+	command["request"]		= QVariant::fromValue( requestWrapper );
+	command["executed"]		= QVariant( false );
 
 	if ( commandStack.empty() ) {
 		_sendRequest( requestWrapper );
@@ -121,15 +122,18 @@ void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
 void HttpRequestWorker::sendNextRequest( HttpRequestWorker *worker )
 {
 	bool sendNext = false;
-	JsonRequest *requestWrapper;
-	//bool requestExecuted;
-	//QVariant requestExecuted;
+	AbstractRequest *requestWrapper;
+	HttpRequestType requestType;
 
 	for ( int i = 0; i < commandStack.size(); ++i ) {
-		requestWrapper 	= commandStack[i]["request"].value<JsonRequest*>();
-		//requestExecuted	= commandStack[i]["executed"];
-		//requestExecutedVariant	= commandStack.at( i )["executed"];
-		//qDebug() << "From Request List: " << requestWrapper->requestName;
+		requestType		= commandStack[i]["requestType"].value<HttpRequestType>();
+		//qDebug() << "Request Type: " << commandStack[i]["requestType"].value<HttpRequestType>();
+
+		if ( requestType == REQUEST_TYPE_JSON ) {
+			requestWrapper 	= commandStack[i]["request"].value<JsonRequest*>();
+		} else {
+			requestWrapper 	= commandStack[i]["request"].value<HttpRequest*>();
+		}
 
 		if ( sendNext && lastFinishedequest != requestWrapper->requestName ) {
 			_sendRequest( requestWrapper );
@@ -137,13 +141,10 @@ void HttpRequestWorker::sendNextRequest( HttpRequestWorker *worker )
 		}
 
 		if ( requestWrapper->requestName == requestName ) {
-			//qDebug() << "Current Request: " << requestName;
 			commandStack[i]["executed"].setValue( true );
-			//requestExecutedVariant.setValue( true );
-			//commandStack.at( i )["executed"] = requestExecutedVariant;
 			sendNext 			= true;
 			lastFinishedequest 	= requestName;
-			qDebug() << "Current Request Executed: " << commandStack[i]["executed"].toBool();
+			//qDebug() << "Current Request Executed: " << commandStack[i]["executed"].toBool();
 		}
 	}
 }
