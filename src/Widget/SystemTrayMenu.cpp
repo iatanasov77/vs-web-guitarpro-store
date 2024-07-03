@@ -43,7 +43,7 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		createToolBar();
-		displayMyTablatures();
+		_displayMyTablatures();
 		syncFileSystem();
 	} else {
 		loginToWebGuitarPro();
@@ -63,7 +63,7 @@ void SystemTrayMenu::loginToWebGuitarPro()
 	if ( dlg->exec() == QDialog::Accepted )
 	{
 		createToolBar();
-		displayMyTablatures();
+		_displayMyTablatures();
 		syncFileSystem();
 	}
 }
@@ -120,7 +120,7 @@ QIcon SystemTrayMenu::createProfileIcon()
 	return profileIcon;
 }
 
-void SystemTrayMenu::displayMyTablatures()
+void SystemTrayMenu::_displayMyTablatures()
 {
 	dirModel	= new WgpFileSystemModel();
 	ui->treeView->setModel( dirModel );
@@ -129,13 +129,13 @@ void SystemTrayMenu::displayMyTablatures()
 	WgpMyTablatures::instance()->getMyTablatures();
 }
 
-void SystemTrayMenu::setTopLevelItems( QList<QTreeWidgetItem *> items )
+void SystemTrayMenu::_setTopLevelItems( QList<QTreeWidgetItem *> items )
 {
 	//ui->treeWidget->insertTopLevelItems( 0, items );
 	ui->treeWidget->addTopLevelItems( items );
 }
 
-QTreeWidgetItem *SystemTrayMenu::createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem )
+QTreeWidgetItem *SystemTrayMenu::_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem )
 {
 	//QTreeWidgetItem *treeItem	= new QTreeWidgetItem( static_cast<QTreeWidget *>(nullptr) );
 	QTreeWidgetItem *treeItem	= new QTreeWidgetItem( parentItem );
@@ -144,15 +144,15 @@ QTreeWidgetItem *SystemTrayMenu::createTreeWidgetItems( QJsonObject jc, QTreeWid
 	treeItem->setText( 0, jc["name"].toString() );
 
 	QJsonObject children	= jc.value( "children" ).toObject();
-	//qDebug() << "'SystemTrayMenu::createTreeWidgetItems' Categories Size: " << children.size();
+	//qDebug() << "'SystemTrayMenu::_createTreeWidgetItems' Categories Size: " << children.size();
 	foreach( const QString& key, children.keys() ) {
 		QJsonObject child	= children.value( key ).toObject();
 
-		createTreeWidgetItems( child, treeItem );
+		_createTreeWidgetItems( child, treeItem );
 	}
 
 	QJsonObject tabs	= jc.value( "tablatures" ).toObject();
-	//qDebug() << "'SystemTrayMenu::createTreeWidgetItems' Tablatures Size: " << tabs.size();
+	//qDebug() << "'SystemTrayMenu::_createTreeWidgetItems' Tablatures Size: " << tabs.size();
 	foreach( const QString& key, tabs.keys() ) {
 		QJsonObject jt	= tabs.value( key ).toObject();
 		QTreeWidgetItem *childItem	= new QTreeWidgetItem( treeItem );
@@ -205,13 +205,13 @@ void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 		if ( jc.contains( "parent" ) )
 			continue;
 
-		treeItem	= createTreeWidgetItems( jc );
+		treeItem	= _createTreeWidgetItems( jc );
 		if ( ! treeItem->parent() ) {
 			items.append( treeItem );
 		}
 	}
 
-	setTopLevelItems( items );
+	_setTopLevelItems( items );
 }
 
 void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
@@ -248,5 +248,5 @@ void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 		items.append( treeItem );
 	}
 
-	setTopLevelItems( items );
+	_setTopLevelItems( items );
 }

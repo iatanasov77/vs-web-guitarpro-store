@@ -41,10 +41,12 @@ void WgpFileSystemMeta::saveMetaJson( QJsonDocument document )
     jsonFile.write( document.toJson() );
 }
 
-void WgpFileSystemMeta::appendToServerMeta( QJsonArray arr )
+void WgpFileSystemMeta::appendToServerMeta( QJsonObject jc )
 {
-	for( int i = 0; i < arr.size(); i++ ) {
-		metaServerJson.push_back( arr[i].toObject() );
+	foreach( const QString& key, jc.keys() ) {
+		QJsonObject meta	= jc.value( key ).toObject();
+
+		metaServerJson.push_back( meta );
 	}
 
 	saveMetaJson( QJsonDocument::fromVariant( metaServerJson.toVariantList() ) );
@@ -133,13 +135,17 @@ void WgpFileSystemMeta::compareArrays( QStringList keyStack, const QJsonArray ar
 	}
 
 	if ( arr1.size() > arr2.size() ) {
-		for ( quint32 i = minSize; i < arr1.size(); i++ ) {
+		int arr1Size = static_cast<int>( arr1.size() );
+
+		for ( int i = minSize; i < arr1Size; i++ ) {
 			m_differences << keyStack.join( ", " ) + ", " + "[" + QString::number( i ) + "]" + ": deleted";
 		}
 	}
 
 	if ( arr1.size() < arr2.size() ) {
-		for ( quint32 i = minSize; i < arr2.size(); i++ ) {
+		int arr2Size = static_cast<int>( arr2.size() );
+
+		for ( int i = minSize; i < arr2Size; i++ ) {
 			m_differences << keyStack.join( ", " ) + ", " + "[" + QString::number( i ) + "]" + ": created";
 		}
 	}

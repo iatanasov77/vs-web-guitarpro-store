@@ -31,11 +31,6 @@ class WgpMyTablatures : public QObject
         static WgpMyTablatures *instance();
 
         bool getMyTablatures();
-
-	signals:
-		void getMyCategoriesFinished( HttpRequestWorker* );
-		void getMyTablaturesFinished( HttpRequestWorker* );
-		void serverLoadFinished();
 };
 
 #endif // WGP_MYTABLATURES_H
