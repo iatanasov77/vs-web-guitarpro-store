@@ -18,12 +18,9 @@ class VsAuth : public QObject
 
 	private:
 		static VsAuth *_instance;
-	    HttpRequestWorker *m_httpRequestWorker;
 
 		explicit VsAuth( QObject *_parent = nullptr );
         static VsAuth *createInstance();
-
-        void handleLoginCheck( HttpRequestWorker *worker );
 
 	public:
         static VsAuth *instance();

@@ -1,3 +1,15 @@
+0.5.0	|	Release date: **03.07.2024**
+============================================
+* New Features , Fixes and Improvements:
+  - Change API Url.
+  - Update ReadMe File.
+  - Debuging HttpRequestWorker .
+  - Finish Debuging HttpRequestWorker .
+  - Improve HttpRequestWorker commandStack
+  - System Tray Menu Create Tablatures Tree is Done.
+  - Fix and Improve WgpFileSystem to Create Directories and Tablature Files.
+
+
 0.4.1	|	Release date: **06.03.2023**
 ============================================
 * New Features and Improvements:

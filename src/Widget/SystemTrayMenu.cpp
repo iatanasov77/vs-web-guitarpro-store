@@ -8,7 +8,6 @@
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QMessageBox>
 #include <QtGui/QIcon>
 #include <QDialog>
 
@@ -32,9 +31,19 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 
 	ui->treeWidget->setColumnCount( 3 );
 
+	connect(
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( HttpRequestWorker* ) ),
+		this, SLOT( handleMyCategoriesResult( HttpRequestWorker* ) )
+	);
+
+	connect(
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( HttpRequestWorker* ) ),
+		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
+	);
+
 	if ( VsAuth::instance()->isLoggedIn() ) {
 		createToolBar();
-		displayMyTablatures();
+		_displayMyTablatures();
 		syncFileSystem();
 	} else {
 		loginToWebGuitarPro();
@@ -54,7 +63,7 @@ void SystemTrayMenu::loginToWebGuitarPro()
 	if ( dlg->exec() == QDialog::Accepted )
 	{
 		createToolBar();
-		displayMyTablatures();
+		_displayMyTablatures();
 		syncFileSystem();
 	}
 }
@@ -111,23 +120,19 @@ QIcon SystemTrayMenu::createProfileIcon()
 	return profileIcon;
 }
 
-void SystemTrayMenu::displayMyTablatures()
+void SystemTrayMenu::_displayMyTablatures()
 {
 	dirModel	= new WgpFileSystemModel();
 	ui->treeView->setModel( dirModel );
 	ui->treeView->setRootIndex( dirModel->index( dirModel->rootPath() ) );
 
 	WgpMyTablatures::instance()->getMyTablatures();
+}
 
-	connect(
-		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),
-		this, SLOT( handleMyCategoriesResult( HttpRequestWorker* ) )
-	);
-
-	connect(
-		WgpMyTablatures::instance(), SIGNAL( getMyTablaturesFinished( HttpRequestWorker* ) ),
-		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
-	);
+void SystemTrayMenu::_setTopLevelItems( QList<QTreeWidgetItem *> items )
+{
+	//ui->treeWidget->insertTopLevelItems( 0, items );
+	ui->treeWidget->addTopLevelItems( items );
 }
 
 QTreeWidgetItem *SystemTrayMenu::_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem )
@@ -136,19 +141,20 @@ QTreeWidgetItem *SystemTrayMenu::_createTreeWidgetItems( QJsonObject jc, QTreeWi
 	QTreeWidgetItem *treeItem	= new QTreeWidgetItem( parentItem );
 
 	// Category Name
-	QJsonObject categoryTaxon	= jc["taxon"].toObject();
-	treeItem->setText( 0, categoryTaxon["name"].toString() );
+	treeItem->setText( 0, jc["name"].toString() );
 
-	QJsonArray children	= jc["children"].toArray();
-	for( int i = 0; i < children.size(); i++ ) {
-		QJsonObject child	= children[i].toObject();
+	QJsonObject children	= jc.value( "children" ).toObject();
+	//qDebug() << "'SystemTrayMenu::_createTreeWidgetItems' Categories Size: " << children.size();
+	foreach( const QString& key, children.keys() ) {
+		QJsonObject child	= children.value( key ).toObject();
 
 		_createTreeWidgetItems( child, treeItem );
 	}
 
-	QJsonArray tabs	= jc["tablatures"].toArray();
-	for( int j = 0; j < tabs.size(); j++ ) {
-		QJsonObject jt	= tabs[j].toObject();
+	QJsonObject tabs	= jc.value( "tablatures" ).toObject();
+	//qDebug() << "'SystemTrayMenu::_createTreeWidgetItems' Tablatures Size: " << tabs.size();
+	foreach( const QString& key, tabs.keys() ) {
+		QJsonObject jt	= tabs.value( key ).toObject();
 		QTreeWidgetItem *childItem	= new QTreeWidgetItem( treeItem );
 
 		// Tablature Name
@@ -172,86 +178,6 @@ QTreeWidgetItem *SystemTrayMenu::_createTreeWidgetItems( QJsonObject jc, QTreeWi
 	return treeItem;
 }
 
-void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
-{
-	QString errorMsg;
-	if ( worker->errorType == QNetworkReply::NoError ) {
-		// communication was successful
-		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
-
-		if ( doc.isArray() ) {
-			QJsonArray results	= doc.array();
-			QList<QTreeWidgetItem *> items;
-			QTreeWidgetItem *treeItem;
-
-			for( int i = 0; i < results.size(); i++ ) {
-				QJsonObject jc	= results[i].toObject();
-				if ( jc.contains( "parent" ) )
-					continue;
-
-				treeItem	= _createTreeWidgetItems( jc );
-				if ( ! treeItem->parent() ) {
-					items.append( treeItem );
-				}
-			}
-
-			//ui->treeWidget->insertTopLevelItems( 0, items );
-			ui->treeWidget->addTopLevelItems( items );
-		}
-	}
-	else {
-		// an error occurred
-		errorMsg	= "Error: " + worker->errorStr;
-		QMessageBox::information( nullptr, "", errorMsg );
-	}
-}
-
-void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
-{
-	QString errorMsg;
-	if ( worker->errorType == QNetworkReply::NoError ) {
-		// communication was successful
-		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
-
-		if ( doc.isArray() ) {
-			QJsonArray results	= doc.array();
-			QList<QTreeWidgetItem *> items;
-			QTreeWidgetItem *treeItem;
-
-			for( int i = 0; i < results.size(); i++ ) {
-			    QJsonObject jt	= results[i].toObject();
-			    treeItem = new QTreeWidgetItem( static_cast<QTreeWidget *>(nullptr) );
-
-				// Tablature Name
-				treeItem->setText( 0, jt["artist"].toString() + " - " + jt["song"].toString() );
-
-				// Tablature Original File Name
-				QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
-				treeItem->setText( 1, tablatureFile["originalName"].toString() );
-
-				// Tablature Is Public
-				QPixmap oPixmap( 32,32 );
-				if ( jt["enabled"] == true ) {
-					oPixmap.load ( ":/Resources/icons/Symbol_OK.svg" );
-				} else {
-					oPixmap.load ( ":/Resources/icons/Symbol_NO.svg" );
-				}
-				QIcon oIcon( oPixmap );
-				treeItem->setIcon( 2, oIcon );
-
-				items.append( treeItem );
-			}
-			//ui->treeWidget->insertTopLevelItems( 0, items );
-			ui->treeWidget->addTopLevelItems( items );
-		}
-	}
-	else {
-		// an error occurred
-		errorMsg	= "Error: " + worker->errorStr;
-		QMessageBox::information( nullptr, "", errorMsg );
-	}
-}
-
 void SystemTrayMenu::logout()
 {
 	VsAuth::instance()->logout();
@@ -263,4 +189,64 @@ void SystemTrayMenu::logout()
 void SystemTrayMenu::syncFileSystem()
 {
 	WgpFileSystem::instance()->sync();
+}
+
+void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
+{
+	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonObject results	= doc.object();
+	//qDebug() << "'SystemTrayMenu::handleMyCategoriesResult' Result Size: " << results.size();
+
+	QList<QTreeWidgetItem *> items;
+	QTreeWidgetItem *treeItem;
+
+	foreach( const QString& key, results.keys() ) {
+		QJsonObject jc	= results.value( key ).toObject();
+		if ( jc.contains( "parent" ) )
+			continue;
+
+		treeItem	= _createTreeWidgetItems( jc );
+		if ( ! treeItem->parent() ) {
+			items.append( treeItem );
+		}
+	}
+
+	_setTopLevelItems( items );
+}
+
+void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
+{
+	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonObject results	= doc.object();
+	//qDebug() << "'SystemTrayMenu::handleMyTablaturesResult' Result Size: " << results.size();
+
+	QList<QTreeWidgetItem *> items;
+	QTreeWidgetItem *treeItem;
+
+	foreach( const QString& key, results.keys() ) {
+		QJsonObject jt	= results.value( key ).toObject();
+
+		treeItem = new QTreeWidgetItem( static_cast<QTreeWidget *>(nullptr) );
+
+		// Tablature Name
+		treeItem->setText( 0, jt["artist"].toString() + " - " + jt["song"].toString() );
+
+		// Tablature Original File Name
+		QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
+		treeItem->setText( 1, tablatureFile["originalName"].toString() );
+
+		// Tablature Is Public
+		QPixmap oPixmap( 32,32 );
+		if ( jt["enabled"] == true ) {
+			oPixmap.load ( ":/Resources/icons/Symbol_OK.svg" );
+		} else {
+			oPixmap.load ( ":/Resources/icons/Symbol_NO.svg" );
+		}
+		QIcon oIcon( oPixmap );
+		treeItem->setIcon( 2, oIcon );
+
+		items.append( treeItem );
+	}
+
+	_setTopLevelItems( items );
 }

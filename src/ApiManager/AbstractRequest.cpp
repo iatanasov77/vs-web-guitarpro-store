@@ -1,6 +1,6 @@
 #include "AbstractRequest.h"
 
-AbstractRequest::AbstractRequest( HttpRequestInput *input )
+AbstractRequest::AbstractRequest( HttpRequestInput *input,  QObject *parent  )
 {
 	_input			= input;
 	_request		= nullptr;

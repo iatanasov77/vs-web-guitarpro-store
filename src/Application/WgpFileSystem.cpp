@@ -21,24 +21,26 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	createModel();
 
 	connect(
-		WgpMyTablatures::instance(), SIGNAL( getMyCategoriesFinished( HttpRequestWorker* ) ),
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( HttpRequestWorker* ) ),
 		this, SLOT( handleMyCategoriesResult( HttpRequestWorker* ) )
 	);
 
 	connect(
-		WgpMyTablatures::instance(), SIGNAL( getMyTablaturesFinished( HttpRequestWorker* ) ),
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( HttpRequestWorker* ) ),
 		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
-	);
-
-	connect(
-		WgpMyTablatures::instance(), SIGNAL( serverLoadFinished() ),
-		this, SLOT( serverLoadFinished() )
 	);
 
 	connect(
 		downloader, SIGNAL( downloaded( QString ) ),
 		this, SLOT( handleDownloadedTablature( QString ) )
 	);
+
+	/*
+	connect(
+		WgpMyTablatures::instance(), SIGNAL( serverLoadFinished() ),
+		this, SLOT( serverLoadFinished() )
+	);
+	*/
 }
 
 WgpFileSystem *WgpFileSystem::createInstance()
@@ -84,7 +86,7 @@ void WgpFileSystem::initWatcher()
 	QDirIterator it( model->rootPath(), QDirIterator::Subdirectories );
 	while ( it.hasNext() ) {
 	    QString categoryPath = it.next();
-	    qDebug() << categoryPath;
+	    qDebug() << "'WgpFileSystem::initWatcher' Category Path: " << categoryPath;
 
 	    watcher->addPath( categoryPath );
 	}
@@ -92,7 +94,7 @@ void WgpFileSystem::initWatcher()
 
 void WgpFileSystem::sync()
 {
-	//WgpMyTablatures::instance()->getMyTablatures();
+	WgpMyTablatures::instance()->getMyTablatures();
 }
 
 /**
@@ -100,30 +102,29 @@ void WgpFileSystem::sync()
  */
 void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 {
-	// Category Name
-	QJsonObject categoryTaxon	= jc["taxon"].toObject();
+	//qDebug() << "Create Category: " << jc["name"];
 
-	QString categoryPath	= path + "/" + categoryTaxon["name"].toString();
+	QString categoryPath	= path + "/" + jc["name"].toString();
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
 
-		model->mkdir( model->index( path ), categoryTaxon["name"].toString() );
+		model->mkdir( model->index( path ), jc["name"].toString() );
 		watcher->addPath( categoryPath );
 	}
 
-	QJsonArray children	= jc["children"].toArray();
-	for( int i = 0; i < children.size(); i++ ) {
-		QJsonObject child	= children[i].toObject();
+	QJsonObject children	= jc.value( "children" ).toObject();
+	foreach( const QString& key, children.keys() ) {
+		QJsonObject child	= children.value( key ).toObject();
 
 		_createCategories( child, categoryPath );
 	}
 
-	QJsonArray tabs	= jc["tablatures"].toArray();
-	for( int j = 0; j < tabs.size(); j++ ) {
-		QJsonObject jt	= tabs[j].toObject();
+	QJsonObject tabs	= jc.value( "tablatures" ).toObject();
+	foreach( const QString& key, tabs.keys() ) {
+		QJsonObject jt	= tabs.value( key ).toObject();
 
 		// Tablature Original File Name
-		QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
+		QJsonObject tablatureFile	= jt.value( "tablatureFile" ).toObject();
 		QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
 
 		if ( ! QFile::exists( tablaturePath ) ) {
@@ -141,57 +142,49 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 
 void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
-	if ( worker->errorType == QNetworkReply::NoError ) {
-		// communication was successful
-		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
-		meta->clearMeta();
+	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	meta->clearMeta();
 
-		if ( doc.isArray() ) {
-			QJsonArray results	= doc.array();
-			meta->appendToServerMeta( results );
+	QJsonObject results	= doc.object();
+	//qDebug() << "'WgpFileSystem::handleMyCategoriesResult' Result Size: " << results.size();
+	//return;
+	meta->appendToServerMeta( results );
 
-			for( int i = 0; i < results.size(); i++ ) {
-				QJsonObject jc	= results[i].toObject();
-				if ( jc.contains( "parent" ) )
-					continue;
+	foreach( const QString& key, results.keys() ) {
+		QJsonObject jc	= results.value( key ).toObject();
 
-				_createCategories( jc, model->rootPath() );
-			}
-		}
+		if ( jc.contains( "parent" ) )
+			continue;
+
+		_createCategories( jc, model->rootPath() );
 	}
 }
 
-/**
- * Triggered By: WgpMyTablatures::_getMyTablaturesUncategorized()
- */
 void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 {
-	if ( worker->errorType == QNetworkReply::NoError ) {
-		// communication was successful
-		QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
 
-		if ( doc.isArray() ) {
-			QJsonArray results	= doc.array();
-			meta->appendToServerMeta( results );
+	QJsonObject results	= doc.object();
+	//qDebug() << "'WgpFileSystem::handleMyTablaturesResult' Result Size: " << results.size();
+	//return;
+	meta->appendToServerMeta( results );
 
-			for( int i = 0; i < results.size(); i++ ) {
-			    QJsonObject jt	= results[i].toObject();
+	foreach( const QString& key, results.keys() ) {
+		QJsonObject jt	= results.value( key ).toObject();
 
-			    // Tablature Original File Name
-				QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
-				QString tablaturePath		= model->rootPath() + "/" + tablatureFile["originalName"].toString();
+		// Tablature Original File Name
+		QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
+		QString tablaturePath		= model->rootPath() + "/" + tablatureFile["originalName"].toString();
 
-				if ( ! QFile::exists( tablaturePath ) ) {
-					//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
+		if ( ! QFile::exists( tablaturePath ) ) {
+			//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
 
-					QString fileUrl	= QString( "%1/download/%2-%3" )
-										.arg( VsApplication::instance()->apiUrl() )
-										.arg( jt["id"].toInt() )
-										.arg( tablatureFile["originalName"].toString() );
-					//qDebug() << "TAB URL: " << fileUrl;
-					downloader->download( fileUrl, tablaturePath, authHeaders() );
-				}
-			}
+			QString fileUrl	= QString( "%1/download/%2-%3" )
+								.arg( VsApplication::instance()->apiUrl() )
+								.arg( jt["id"].toInt() )
+								.arg( tablatureFile["originalName"].toString() );
+			//qDebug() << "TAB URL: " << fileUrl;
+			downloader->download( fileUrl, tablaturePath, authHeaders() );
 		}
 	}
 }
@@ -215,13 +208,13 @@ void WgpFileSystem::handleDownloadedTablature( QString targetPath )
 
 void WgpFileSystem::fileModified( QString path )
 {
-	qDebug() << "Path Modified: " << path;
+	qDebug() << "'WgpFileSystem::fileModified' Path Modified: " << path;
 }
 
 QMap<QString, QString> WgpFileSystem::authHeaders()
 {
 	QMap<QString, QString> headers;
-	QVariant authToken	= VsSettings::instance()->value( "authPayload", SettingsGroups["authentication"] ).toHash().value( "token" );
+	QVariant authToken	= VsSettings::instance()->value( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] ).toHash().value( "token" );
 
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
