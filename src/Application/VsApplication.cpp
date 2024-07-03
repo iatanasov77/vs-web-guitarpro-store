@@ -10,6 +10,7 @@
 #include <QSettings>
 #include <QVersionNumber>
 
+#include "GlobalTypes.h"
 #include "Application/VsSettings.h"
 
 /*
@@ -118,7 +119,7 @@ void VsApplication::loadLanguage( const QString& rLanguage )
 		switchTranslator( m_translator, QString( "QVocabulary_%1.qm" ).arg( rLanguage ) );
 		switchTranslator( m_translatorQt, QString( "qt_%1.qm" ).arg( rLanguage ) );
 
-		VsSettings::instance()->setValue( "language", m_currLang, "General" );
+		VsSettings::instance()->setValue( SettingsKeys["LANGUAGE"], m_currLang, "General" );
 	}
 }
 

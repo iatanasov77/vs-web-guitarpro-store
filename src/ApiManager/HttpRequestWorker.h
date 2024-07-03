@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QWidget>
 
 #include "AbstractRequest.h"
 #include "HttpRequestInput.h"
@@ -26,14 +27,22 @@ class HttpRequestWorker : public QObject
 		QString requestName;
 		QString lastFinishedequest;
 
-		explicit HttpRequestWorker( QObject *parent = 0 );
+		static HttpRequestWorker* instance();
 		void execute( HttpRequestInput *input, QString strRequestName );
 		void execute( HttpRequestInput *input, QString strRequestName, QMap<QString, QString> headers );
 
 	signals:
 		void workerFinished( HttpRequestWorker *worker );
+		void loginCheckResponseReady( HttpRequestWorker *worker );
+		void myCategoriesResponseReady( HttpRequestWorker *worker );
+		void myTablaturesResponseReady( HttpRequestWorker *worker );
 
 	private:
+		HttpRequestWorker( QObject *parent = 0 );
+		static HttpRequestWorker* createInstance();
+		static HttpRequestWorker *_instance;
+		QObject *handler;
+
 		QNetworkAccessManager *manager;
 		QList<QMap<QString, QVariant>> commandStack;
 		void resetWorker();
@@ -41,9 +50,14 @@ class HttpRequestWorker : public QObject
 		void debugNetworkReply( QNetworkReply *reply );
 		void debugNetworkReplyResponse( QString debugFrom, QByteArray response );
 
+		void handleLoginCheck();
+		void handleMyCategoriesResult();
+		void handleMyTablaturesResult();
+
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );
-		void sendNextRequest( HttpRequestWorker *worker );
+		void handleRequest();
+		void sendNextRequest();
 
 };
 

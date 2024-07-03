@@ -23,6 +23,9 @@ class SystemTrayMenu : public QWidget
 		~SystemTrayMenu();
 
 		void displayMyTablatures();
+		QTreeWidgetItem *createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem = nullptr );
+		void setTopLevelItems( QList<QTreeWidgetItem *> items );
+
 	private:
 		Ui::SystemTrayMenu *ui;
 		QToolBar *toolBar;
@@ -32,12 +35,11 @@ class SystemTrayMenu : public QWidget
 		void createToolBar();
 		QIcon createProfileIcon();
 		void syncFileSystem();
-		QTreeWidgetItem *_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem = nullptr );
 
 	public slots:
+		void logout();
 		void handleMyCategoriesResult( HttpRequestWorker *worker );
 		void handleMyTablaturesResult( HttpRequestWorker *worker );
-		void logout();
 };
 
 #endif // SYSTEMTRAYMENU_H

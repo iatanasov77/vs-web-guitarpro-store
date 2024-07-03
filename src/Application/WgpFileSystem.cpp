@@ -101,14 +101,13 @@ void WgpFileSystem::sync()
 void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 {
 	// Category Name
-	QJsonObject categoryTaxon	= jc["taxon"].toObject();
-	qDebug() << "Create Category: " << categoryTaxon["name"];
+	qDebug() << "Create Category: " << jc["name"];
 
-	QString categoryPath	= path + "/" + categoryTaxon["name"].toString();
+	QString categoryPath	= path + "/" + jc["name"].toString();
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
 
-		model->mkdir( model->index( path ), categoryTaxon["name"].toString() );
+		model->mkdir( model->index( path ), jc["name"].toString() );
 		watcher->addPath( categoryPath );
 	}
 
@@ -220,7 +219,7 @@ void WgpFileSystem::fileModified( QString path )
 QMap<QString, QString> WgpFileSystem::authHeaders()
 {
 	QMap<QString, QString> headers;
-	QVariant authToken	= VsSettings::instance()->value( "authPayload", SettingsGroups["authentication"] ).toHash().value( "token" );
+	QVariant authToken	= VsSettings::instance()->value( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] ).toHash().value( "token" );
 
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 

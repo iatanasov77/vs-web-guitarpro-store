@@ -13,10 +13,8 @@ VsAuth::VsAuth( QObject *parent ) : QObject( parent )
 {
 	Q_UNUSED( parent );
 
-	m_httpRequestWorker = new HttpRequestWorker();
-
 	connect(
-		m_httpRequestWorker, SIGNAL( workerFinished( HttpRequestWorker* ) ),
+		HttpRequestWorker::instance(), SIGNAL( loginCheckResponseReady( HttpRequestWorker* ) ),
 		this, SLOT( handleAuthResult( HttpRequestWorker* ) )
 	);
 }
@@ -38,7 +36,7 @@ VsAuth *VsAuth::instance()
 bool VsAuth::isLoggedIn()
 {
 	VsSettings *oSettings	= VsSettings::instance();
-	QVariant authExpireTime	= oSettings->value( "authPayload", SettingsGroups["authentication"] ).toHash().value( "tokenExpired" );
+	QVariant authExpireTime	= oSettings->value( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] ).toHash().value( "tokenExpired" );
 
 	return QDateTime::currentSecsSinceEpoch() <= authExpireTime.toInt();
 }
@@ -54,15 +52,15 @@ bool VsAuth::login( QString username, QString password )
 	input.addVar( "username", username );
 	input.addVar( "password", password );
 
-	m_httpRequestWorker->setObjectName( RequestTypes[LOGIN_CHECK] );
-	m_httpRequestWorker->execute( &input, "Login Request" );
+	HttpRequestWorker::instance()->setObjectName( RequestTypes[LOGIN_CHECK] );
+	HttpRequestWorker::instance()->execute( &input, HttpRequests["LOGIN_REQUEST"] );
 
 	return true;
 }
 
 void VsAuth::logout()
 {
-	VsSettings::instance()->remove( "authPayload", SettingsGroups["authentication"] );
+	VsSettings::instance()->remove( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] );
 }
 
 QString VsAuth::userFullName()
@@ -71,35 +69,23 @@ QString VsAuth::userFullName()
 		return "Not Logged In";
 	}
 
-	QString userFullName	= VsSettings::instance()->value( "authPayload", SettingsGroups["authentication"] ).toHash()
+	QString userFullName	= VsSettings::instance()->value( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] ).toHash()
 													.value( "userFullName" ).toString();
 	return userFullName;
 }
 
 void VsAuth::handleAuthResult( HttpRequestWorker *worker )
 {
-    if ( worker->objectName() == RequestTypes[LOGIN_CHECK] ) {
-    	handleLoginCheck( worker );
-    } else {
-    	qDebug() << "UNDEFINED AUTH REQUEST !!!";
-    }
-}
+	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
 
-void VsAuth::handleLoginCheck( HttpRequestWorker *worker )
-{
-    if ( worker->errorType == QNetworkReply::NoError ) {
-        // communication was successful
-    	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QVariant authPayload	= doc["payload"].toVariant();
+	//qDebug() << "API Token: " << authPayload.toHash().value( "token" ).toString();
 
-    	QVariant authPayload	= doc["payload"].toVariant();
-    	//qDebug() << "API Token: " << authPayload.toHash().value( "token" ).toString();
+	QVariant refreshToken	= doc["refresh_token"].toVariant();
+	//qDebug() << "API Token: " << refreshToken.toString();
 
-    	QVariant refreshToken	= doc["refresh_token"].toVariant();
-    	//qDebug() << "API Token: " << refreshToken.toString();
+	VsSettings::instance()->setValue( SettingsKeys["AUTH_PAYLOAD"], authPayload, SettingsGroups["authentication"] );
+	VsSettings::instance()->setValue( SettingsKeys["REFRESH_TOKEN"], refreshToken, SettingsGroups["authentication"] );
 
-    	VsSettings::instance()->setValue( "authPayload", authPayload, SettingsGroups["authentication"] );
-    	VsSettings::instance()->setValue( "refreshToken", refreshToken, SettingsGroups["authentication"] );
-    }
-
-    emit loginCheckFinished( worker );
+	emit loginCheckFinished( worker );
 }

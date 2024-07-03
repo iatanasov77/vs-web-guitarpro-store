@@ -19,7 +19,6 @@ class WgpMyTablatures : public QObject
 
 	private:
 		static WgpMyTablatures *_instance;
-		HttpRequestWorker *m_httpRequestWorker;
 
 		WgpMyTablatures( QObject *_parent = nullptr );
         static WgpMyTablatures *createInstance();
@@ -32,9 +31,6 @@ class WgpMyTablatures : public QObject
         static WgpMyTablatures *instance();
 
         bool getMyTablatures();
-
-	public slots:
-		void handleMyTablaturesResult( HttpRequestWorker *worker );
 
 	signals:
 		void getMyCategoriesFinished( HttpRequestWorker* );

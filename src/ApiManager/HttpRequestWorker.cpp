@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QBuffer>
 #include <QSaveFile>
+#include <QMessageBox>
 
 // Needed For Debug
 #include <QJsonDocument>
@@ -11,11 +12,19 @@
 #include <QJsonObject>
 
 #include "GlobalTypes.h"
+#include "Application/VsAuth.h"
+#include "Application/VsSettings.h"
 #include "ApiManager/HttpRequest.h"
 #include "ApiManager/JsonRequest.h"
 
-HttpRequestWorker::HttpRequestWorker( QObject *parent )
-    : QObject( parent )
+/*
+ * This one did the trick!
+ * ------------------------
+ * But I want to do this: https://stackoverflow.com/questions/46172607/qt-singleton-implementation
+ */
+HttpRequestWorker *HttpRequestWorker::_instance = 0;
+
+HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
 {
 	resetWorker();
 
@@ -27,9 +36,27 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent )
 
     connect(
 		this, SIGNAL( workerFinished( HttpRequestWorker* ) ),
-		this, SLOT( sendNextRequest( HttpRequestWorker* ) ),
+		this, SLOT( handleRequest() )
+	);
+
+	connect(
+		this, SIGNAL( workerFinished( HttpRequestWorker* ) ),
+		this, SLOT( sendNextRequest() ),
 		Qt::QueuedConnection
 	);
+}
+
+HttpRequestWorker *HttpRequestWorker::createInstance()
+{
+    return new HttpRequestWorker();
+}
+
+HttpRequestWorker *HttpRequestWorker::instance() {
+	if ( ! _instance ) {
+		_instance = createInstance();
+	}
+
+	return _instance;
 }
 
 void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName )
@@ -102,14 +129,15 @@ void HttpRequestWorker::resetWorker()
 
 void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
 {
-	//debugNetworkReply( reply );
-	//return;
+	/*
+	debugNetworkReply( reply );
+	return;
+	*/
 
     errorType = reply->error();
     if ( errorType == QNetworkReply::NoError ) {
         response = reply->readAll();
-
-        debugNetworkReplyResponse( "HttpRequestWorker::onManagerFinished", response );
+        //debugNetworkReplyResponse( "HttpRequestWorker::onManagerFinished", response );
     }
     else {
         errorStr = reply->errorString();
@@ -119,7 +147,7 @@ void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
     emit workerFinished( this );
 }
 
-void HttpRequestWorker::sendNextRequest( HttpRequestWorker *worker )
+void HttpRequestWorker::sendNextRequest()
 {
 	bool sendNext = false;
 	AbstractRequest *requestWrapper;
@@ -177,9 +205,11 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper )
 	QNetworkRequest *request	= requestWrapper->request();
 	HttpRequestInput *input		= requestWrapper->requestInput();
 
+	/*
 	QString requestUrl			= request->url().toString();
 	qDebug() << "Request URL: " << requestUrl;
-	//return;
+	return;
+	*/
 
 	if ( input->httpMethod == "GET" ) {
 	    manager->get( *request );
@@ -200,5 +230,72 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper )
 		QByteArray requestContent	= requestWrapper->requestContent();
 		QBuffer buff( & requestContent );
 		manager->sendCustomRequest( *request, input->httpMethod.toLatin1(), &buff );
+	}
+}
+
+void HttpRequestWorker::handleRequest()
+{
+	if ( requestName == HttpRequests["LOGIN_REQUEST"] ) {
+		handleLoginCheck();
+	} else if( requestName == HttpRequests["GET_MYTABLATURES_REQUEST"] ) {
+		handleMyTablaturesResult();
+	} else if( requestName == HttpRequests["GET_MYCATEGORIES_REQUEST"] ) {
+		handleMyCategoriesResult();
+	} else if( requestName == HttpRequests["GET_MYTABLATURESUNCATEGORIZED_REQUEST"] ) {
+
+	} else {
+		qDebug() << "UNDEFINED HTTP REQUEST !!!";
+	}
+}
+
+void HttpRequestWorker::handleLoginCheck()
+{
+    QString errorMsg;
+	if ( errorType == QNetworkReply::NoError ) {
+		emit loginCheckResponseReady( this );
+	} else {
+		// an error occurred
+		errorMsg	= "Error: " + errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+/*
+void WgpMyTablatures::handleMyTablaturesResult( HttpRequestWorker *worker )
+{
+	if ( objectName() == TablaturesRequestTypes[GET_MY_CATEGORIES] ) {
+		emit getMyCategoriesFinished( this );
+		_getMyTablaturesUncategorized();	// Should To Be Here
+	} else if( objectName() == TablaturesRequestTypes[GET_MY_TABLATURES] ) {
+		emit getMyTablaturesFinished( this );
+		emit serverLoadFinished();
+	} else {
+		//qDebug() << "UNDEFINED MY TABLATURES REQUEST !!!";
+	}
+}
+*/
+
+void HttpRequestWorker::handleMyCategoriesResult()
+{
+	QString errorMsg;
+	if (errorType == QNetworkReply::NoError ) {
+		emit myCategoriesResponseReady( this );
+	} else {
+		// an error occurred
+		errorMsg	= "Error: " + errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleMyTablaturesResult()
+{
+
+	QString errorMsg;
+	if ( errorType == QNetworkReply::NoError ) {
+		emit myTablaturesResponseReady( this );
+	} else {
+		// an error occurred
+		errorMsg	= "Error: " + errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }
