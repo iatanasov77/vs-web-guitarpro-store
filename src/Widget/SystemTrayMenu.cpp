@@ -10,6 +10,8 @@
 #include <QJsonArray>
 #include <QtGui/QIcon>
 #include <QDialog>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
@@ -24,7 +26,13 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 {
 	ui->setupUi( this );
 
+	/**
+	 * Directory Tab is To Show Directory With Files Not Category Tree Got From API
+	 */
+	//ui->tabWidget->removeTab( 1 );
+
 	toolBar	= new QToolBar( ui->widget );
+	toolBar->setStyleSheet( "QToolBar{spacing:10px;}" );
 	ui->menubarLayout->addWidget( toolBar );
 
 	ui->treeWidget->setColumnCount( 3 );
@@ -70,6 +78,15 @@ void SystemTrayMenu::loginToWebGuitarPro()
 
 void SystemTrayMenu::_createToolBar()
 {
+	QAction *openFolderAct = new QAction( tr("&Open WebGuitarPro Folder" ), this );
+	//openFolderAct->setStatusTip( tr( "Open WebGuitarPro Folder" ) );
+	connect( openFolderAct, SIGNAL( triggered() ), this, SLOT( openWebGuitarProFolder() ) );
+
+	QToolButton *folderButton	= new QToolButton( toolBar );
+	folderButton->setDefaultAction( openFolderAct );
+	folderButton->setIcon( QIcon( ":/Resources/icons/folder.png" ) );
+	toolBar->addWidget( folderButton  );
+
 	QMenu *profileMenu 	= new QMenu( "Profile" );
 
 	QAction *logoutAct = new QAction( tr("&Sign Out" ), this );
@@ -250,4 +267,12 @@ void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
 	}
 
 	_setTopLevelItems( items );
+}
+
+void SystemTrayMenu::openWebGuitarProFolder()
+{
+	QString WebGuitarProFolder	= QDir::homePath() + "/WebGuitarPro";
+	//qDebug() << WebGuitarProFolder;
+
+	QDesktopServices::openUrl( QUrl::fromLocalFile( WebGuitarProFolder ) );
 }

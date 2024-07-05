@@ -41,6 +41,7 @@ class SystemTrayMenu : public QWidget
 		void logout();
 		void handleMyCategoriesResult( HttpRequestWorker *worker );
 		void handleMyTablaturesResult( HttpRequestWorker *worker );
+		void openWebGuitarProFolder();
 };
 
 #endif // SYSTEMTRAYMENU_H
