@@ -31,6 +31,10 @@ class WgpMyTablatures : public QObject
         static WgpMyTablatures *instance();
 
         bool getMyTablatures();
+
+        void createTablatureCategry( QString $name );
+        void updateTablatureCategry( int categoryId, QString $name );
+        void deleteTablatureCategry( int categoryId );
 };
 
 #endif // WGP_MYTABLATURES_H

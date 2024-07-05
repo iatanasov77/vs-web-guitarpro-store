@@ -72,3 +72,39 @@ void WgpMyTablatures::_getMyTablaturesUncategorized()
 
 	HttpRequestWorker::instance()->execute( input, HttpRequests["GET_MYTABLATURESUNCATEGORIZED_REQUEST"], headers, true );
 }
+
+void WgpMyTablatures::createTablatureCategry( QString $name )
+{
+	QString strUrl	= VsApplication::instance()->apiUrl().append( "/my-categories/new" );
+	HttpRequestInput input( strUrl, "POST" );
+	input.requestType	= REQUEST_TYPE_JSON;
+	QMap<QString, QString> headers;
+
+	input.addVar( "parentCategory", "" );
+	input.addVar( "name", $name );
+
+	HttpRequestWorker::instance()->execute( input, HttpRequests["CREATE_TABLATURE_CATEGORY_REQUEST"], headers, true );
+}
+
+void WgpMyTablatures::updateTablatureCategry( int categoryId, QString $name )
+{
+	QString strUrl	= VsApplication::instance()->apiUrl().append( QString( "/my-categories/%1" ).arg( categoryId ) );
+	HttpRequestInput input( strUrl, "PUT" );
+	input.requestType	= REQUEST_TYPE_JSON;
+	QMap<QString, QString> headers;
+
+	input.addVar( "parentCategory", "" );
+	input.addVar( "name", $name );
+
+	HttpRequestWorker::instance()->execute( input, HttpRequests["UPDATE_TABLATURE_CATEGORY_REQUEST"], headers, true );
+}
+
+void WgpMyTablatures::deleteTablatureCategry( int categoryId )
+{
+	QString strUrl	= VsApplication::instance()->apiUrl().append( QString( "/my-categories/%1" ).arg( categoryId ) );
+	HttpRequestInput input( strUrl, "DELETE" );
+	input.requestType	= REQUEST_TYPE_JSON;
+	QMap<QString, QString> headers;
+
+	HttpRequestWorker::instance()->execute( input, HttpRequests["DELETE_TABLATURE_CATEGORY_REQUEST"], headers, true );
+}

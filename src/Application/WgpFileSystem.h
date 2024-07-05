@@ -36,6 +36,7 @@ class WgpFileSystem : public QObject
         static WgpFileSystem *instance();
 
         WgpFileSystemModel *model();
+        void metaDifferences();
         void sync();
 
     public slots:

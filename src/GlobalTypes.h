@@ -23,7 +23,11 @@ static QMap<QString, QString> HttpRequests {
 	{"LOGIN_REQUEST", "Login Request"},
 	{"GET_MYTABLATURES_REQUEST", "Get MyTablatures Request"},
 	{"GET_MYCATEGORIES_REQUEST", "Get MyCategories Request"},
-	{"GET_MYTABLATURESUNCATEGORIZED_REQUEST", "Get MyTablaturesUncategorized Request"}
+	{"GET_MYTABLATURESUNCATEGORIZED_REQUEST", "Get MyTablaturesUncategorized Request"},
+
+	{"CREATE_TABLATURE_CATEGORY_REQUEST", "Create TablatureCategory Request"},
+	{"UPDATE_TABLATURE_CATEGORY_REQUEST", "Update TablatureCategory Request"},
+	{"DELETE_TABLATURE_CATEGORY_REQUEST", "Delete TablatureCategory Request"}
 };
 
 #endif	// GLOBALTYPES_H

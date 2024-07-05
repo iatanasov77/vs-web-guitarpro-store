@@ -62,7 +62,7 @@ void WgpFileSystem::createModel()
 	_model			= new WgpFileSystemModel;
 	iconProvider	= new WgpFileIconProvider();
 	watcher			= new QFileSystemWatcher( { _model->rootPath() } ) ;
-	//meta			= new WgpFileSystemMeta( _model );
+	meta			= new WgpFileSystemMeta( _model );
 
 	_model->setIconProvider( iconProvider );
 	initWatcher();
@@ -73,7 +73,7 @@ void WgpFileSystem::createModel()
 	);
 
 	connect(
-		watcher, SIGNAL(  fileChanged( QString ) ),
+		watcher, SIGNAL( fileChanged( QString ) ),
 		this, SLOT( fileModified( QString ) )
 	);
 }
@@ -143,12 +143,12 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
-	//meta->clearMeta();
+	meta->clearMeta();
 
 	QJsonObject results	= doc.object();
 	//qDebug() << "'WgpFileSystem::handleMyCategoriesResult' Result Size: " << results.size();
 	//return;
-	//meta->appendToServerMeta( results );
+	meta->appendToServerMeta( results );
 
 	foreach( const QString& key, results.keys() ) {
 		QJsonObject jc	= results.value( key ).toObject();
@@ -169,7 +169,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 	QJsonObject results	= doc.object();
 	//qDebug() << "'WgpFileSystem::handleMyTablaturesResult' Result Size: " << results.size();
 	//return;
-	//meta->appendToServerMeta( results );
+	meta->appendToServerMeta( results );
 
 	foreach( const QString& key, results.keys() ) {
 		QJsonObject jt	= results.value( key ).toObject();
@@ -205,6 +205,18 @@ void WgpFileSystem::serverLoadFinished()
 
 }
 
+void WgpFileSystem::metaDifferences()
+{
+	qDebug() << "META DIFFERENCES \n=============================\n";
+
+	QStringList list	= meta->compareMeta();
+	for ( const auto& i : list  )
+	{
+	    qDebug() << i;
+	}
+
+}
+
 void WgpFileSystem::handleDownloadedTablature( QString targetPath )
 {
 	watcher->addPath( targetPath );
@@ -213,6 +225,12 @@ void WgpFileSystem::handleDownloadedTablature( QString targetPath )
 void WgpFileSystem::fileModified( QString path )
 {
 	qDebug() << "'WgpFileSystem::fileModified' Path Modified: " << path;
+	QFileInfo fi( path );
+	if ( fi.isDir() ) {
+
+	}
+
+	metaDifferences();
 }
 
 QMap<QString, QString> WgpFileSystem::authHeaders()
