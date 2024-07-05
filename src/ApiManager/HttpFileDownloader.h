@@ -27,7 +27,7 @@ class HttpFileDownloader : public QObject
 		void fileDownloaded( QNetworkReply* pReply );
 
 	private:
-		QNetworkAccessManager m_WebCtrl;
+		QNetworkAccessManager *manager;
 		QMap<QString, QByteArray> m_DownloadedData;
 
 		QMap<QString, QString> downloadFiles;

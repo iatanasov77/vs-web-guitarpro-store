@@ -3,7 +3,7 @@
 HttpFileDownloader::HttpFileDownloader( QObject *parent ) : QObject( parent )
 {
 	connect(
-		&m_WebCtrl, SIGNAL ( finished( QNetworkReply* ) ),
+		manager, SIGNAL ( finished( QNetworkReply* ) ),
 		this, SLOT ( fileDownloaded( QNetworkReply* ) )
 	);
 }
@@ -37,7 +37,7 @@ void HttpFileDownloader::download( QString url, QString targetPath )
 
 	QUrl fileUrl( url );
 	QNetworkRequest request( fileUrl );
-	m_WebCtrl.get( request );
+	manager->get( request );
 }
 
 void HttpFileDownloader::download( QString url, QString targetPath, QMap<QString, QString> headers )
@@ -53,7 +53,7 @@ void HttpFileDownloader::download( QString url, QString targetPath, QMap<QString
 		}
 	}
 
-	m_WebCtrl.get( request );
+	manager->get( request );
 }
 
 void HttpFileDownloader::writeFile( QString filePath, QByteArray data )

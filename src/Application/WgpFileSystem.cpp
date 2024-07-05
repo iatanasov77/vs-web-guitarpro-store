@@ -34,7 +34,6 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 		downloader, SIGNAL( downloaded( QString ) ),
 		this, SLOT( handleDownloadedTablature( QString ) )
 	);
-
 	/*
 	connect(
 		WgpMyTablatures::instance(), SIGNAL( serverLoadFinished() ),
@@ -62,7 +61,7 @@ void WgpFileSystem::createModel()
 	model			= new WgpFileSystemModel;
 	iconProvider	= new WgpFileIconProvider();
 	watcher			= new QFileSystemWatcher( { model->rootPath() } ) ;
-	meta			= new WgpFileSystemMeta( model );
+	//meta			= new WgpFileSystemMeta( model );
 
 	model->setIconProvider( iconProvider );
 	initWatcher();
@@ -86,7 +85,7 @@ void WgpFileSystem::initWatcher()
 	QDirIterator it( model->rootPath(), QDirIterator::Subdirectories );
 	while ( it.hasNext() ) {
 	    QString categoryPath = it.next();
-	    qDebug() << "'WgpFileSystem::initWatcher' Category Path: " << categoryPath;
+	    //qDebug() << "'WgpFileSystem::initWatcher' Category Path: " << categoryPath;
 
 	    watcher->addPath( categoryPath );
 	}
@@ -143,12 +142,12 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
-	meta->clearMeta();
+	//meta->clearMeta();
 
 	QJsonObject results	= doc.object();
 	//qDebug() << "'WgpFileSystem::handleMyCategoriesResult' Result Size: " << results.size();
 	//return;
-	meta->appendToServerMeta( results );
+	//meta->appendToServerMeta( results );
 
 	foreach( const QString& key, results.keys() ) {
 		QJsonObject jc	= results.value( key ).toObject();
@@ -158,6 +157,8 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 
 		_createCategories( jc, model->rootPath() );
 	}
+
+	//serverLoadFinished();
 }
 
 void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
@@ -167,7 +168,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 	QJsonObject results	= doc.object();
 	//qDebug() << "'WgpFileSystem::handleMyTablaturesResult' Result Size: " << results.size();
 	//return;
-	meta->appendToServerMeta( results );
+	//meta->appendToServerMeta( results );
 
 	foreach( const QString& key, results.keys() ) {
 		QJsonObject jt	= results.value( key ).toObject();
@@ -187,6 +188,8 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 			downloader->download( fileUrl, tablaturePath, authHeaders() );
 		}
 	}
+
+	//serverLoadFinished();
 }
 
 void WgpFileSystem::serverLoadFinished()

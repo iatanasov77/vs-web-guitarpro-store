@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QCache>
 #include <QMap>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -23,13 +24,10 @@ class HttpRequestWorker : public QObject
 	public:
 		QByteArray response;
 		QNetworkReply::NetworkError errorType;
-		QString errorStr;
-		QString requestName;
-		QString lastFinishedequest;
 
 		static HttpRequestWorker* instance();
-		void execute( HttpRequestInput *input, QString strRequestName );
-		void execute( HttpRequestInput *input, QString strRequestName, QMap<QString, QString> headers );
+		void execute( HttpRequestInput input, QString strRequestName, bool needAuthorization = false );
+		void execute( HttpRequestInput input, QString strRequestName, QMap<QString, QString> headers, bool needAuthorization = false );
 
 	signals:
 		void workerFinished( HttpRequestWorker *worker );
@@ -38,21 +36,32 @@ class HttpRequestWorker : public QObject
 		void myTablaturesResponseReady( HttpRequestWorker *worker );
 
 	private:
-		HttpRequestWorker( QObject *parent = 0 );
-		static HttpRequestWorker* createInstance();
 		static HttpRequestWorker *_instance;
-		QObject *handler;
 
 		QNetworkAccessManager *manager;
-		QList<QMap<QString, QVariant>> commandStack;
+		QCache<int, QMap<QString, QVariant>> *commandStack;
+
+		QString errorStr;
+		QString requestName;
+		QString lastFinishedRequest;
+
+		HttpRequestWorker( QObject *parent = 0 );
+		static HttpRequestWorker* createInstance();
+
 		void resetWorker();
-		void _sendRequest( AbstractRequest *requestWrapper );
+		void _authorizeRequest( QNetworkRequest *request );
+		void _sendRequest( AbstractRequest *requestWrapper, bool needAuthorization );
 		void debugNetworkReply( QNetworkReply *reply );
 		void debugNetworkReplyResponse( QString debugFrom, QByteArray response );
+		void debugCommand( QMap<QString, QVariant> command );
+		void debugCommandStack();
+		void debugRequest( QNetworkRequest *request );
+		void debugAuthorizationSettings();
 
 		void handleLoginCheck();
 		void handleMyCategoriesResult();
 		void handleMyTablaturesResult();
+		void handleMyTablaturesUncategorizedResult();
 
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );

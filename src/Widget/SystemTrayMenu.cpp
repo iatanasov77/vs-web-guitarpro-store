@@ -18,8 +18,6 @@
 #include "Application/WgpMyTablatures.h"
 #include "Application/WgpFileSystem.h"
 
-#include "Dialog/UserLoginDialog.h"
-
 SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	QWidget( parent ),
 	ui( new Ui::SystemTrayMenu )
@@ -31,6 +29,7 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 
 	ui->treeWidget->setColumnCount( 3 );
 
+	/*  */
 	connect(
 		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( HttpRequestWorker* ) ),
 		this, SLOT( handleMyCategoriesResult( HttpRequestWorker* ) )
@@ -42,9 +41,9 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	);
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
-		createToolBar();
+		_createToolBar();
 		_displayMyTablatures();
-		syncFileSystem();
+		//_syncFileSystem();
 	} else {
 		loginToWebGuitarPro();
 	}
@@ -57,18 +56,19 @@ SystemTrayMenu::~SystemTrayMenu()
 
 void SystemTrayMenu::loginToWebGuitarPro()
 {
-	UserLoginDialog *dlg	= new UserLoginDialog();
-	dlg->setModal( true );
+	loginDialog	= new UserLoginDialog();
+	loginDialog->setModal( true );
 
-	if ( dlg->exec() == QDialog::Accepted )
+	if ( loginDialog->exec() == QDialog::Accepted )
 	{
-		createToolBar();
+		qDebug() << "'SystemTrayMenu::loginToWebGuitarPro' UserLoginDialog: ACCEPTED";
+		_createToolBar();
 		_displayMyTablatures();
-		syncFileSystem();
+		//_syncFileSystem();
 	}
 }
 
-void SystemTrayMenu::createToolBar()
+void SystemTrayMenu::_createToolBar()
 {
 	QMenu *profileMenu 	= new QMenu( "Profile" );
 
@@ -83,13 +83,13 @@ void SystemTrayMenu::createToolBar()
 	profileMenu->addAction( quitAct );
 
 	QToolButton *profileButton	= new QToolButton( toolBar );
-	profileButton->setIcon( createProfileIcon() );
+	profileButton->setIcon( _createProfileIcon() );
 	profileButton->setMenu( profileMenu );
 	profileButton->setPopupMode( QToolButton::InstantPopup );
 	toolBar->addWidget( profileButton  );
 }
 
-QIcon SystemTrayMenu::createProfileIcon()
+QIcon SystemTrayMenu::_createProfileIcon()
 {
 	QString profileIconText	= QString( "" );
 	QString userFullName	= VsAuth::instance()->userFullName();
@@ -126,6 +126,7 @@ void SystemTrayMenu::_displayMyTablatures()
 	ui->treeView->setModel( dirModel );
 	ui->treeView->setRootIndex( dirModel->index( dirModel->rootPath() ) );
 
+	//return;
 	WgpMyTablatures::instance()->getMyTablatures();
 }
 
@@ -186,7 +187,7 @@ void SystemTrayMenu::logout()
 	loginToWebGuitarPro();
 }
 
-void SystemTrayMenu::syncFileSystem()
+void SystemTrayMenu::_syncFileSystem()
 {
 	WgpFileSystem::instance()->sync();
 }

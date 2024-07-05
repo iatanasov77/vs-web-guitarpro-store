@@ -9,6 +9,7 @@
 
 #include "ApiManager/HttpRequestWorker.h"
 #include "Model/WgpFileSystemModel.h"
+#include "Dialog/UserLoginDialog.h"
 
 namespace Ui {
 	class SystemTrayMenu;
@@ -24,18 +25,19 @@ class SystemTrayMenu : public QWidget
 
 	private:
 		Ui::SystemTrayMenu *ui;
+		UserLoginDialog *loginDialog;
 		QToolBar *toolBar;
 		WgpFileSystemModel *dirModel;
 
 		void loginToWebGuitarPro();
-		void createToolBar();
-		QIcon createProfileIcon();
-		void syncFileSystem();
+		void _createToolBar();
+		QIcon _createProfileIcon();
+		void _syncFileSystem();
 		void _displayMyTablatures();
 		void _setTopLevelItems( QList<QTreeWidgetItem *> items );
 		QTreeWidgetItem *_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem = nullptr );
 
-	public slots:
+	private slots:
 		void logout();
 		void handleMyCategoriesResult( HttpRequestWorker *worker );
 		void handleMyTablaturesResult( HttpRequestWorker *worker );
