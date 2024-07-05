@@ -7,14 +7,16 @@ WgpFileIconProvider::WgpFileIconProvider()
 
 QIcon WgpFileIconProvider::icon( QFileIconProvider::IconType type ) const
 {
-	// return QPixmap( ":/Resources/icons/logo.png" );
+	Q_UNUSED( type );
 
+	//return QIcon( ":/Resources/icons/logo.png" );
 	return QFileIconProvider::icon( type );
 }
 
 QIcon WgpFileIconProvider::icon( const QFileInfo &info ) const
 {
-	// return QPixmap( ":/Resources/icons/logo.png" );
+	Q_UNUSED( info );
 
+	//return QIcon( ":/Resources/icons/logo.png" );
 	return QFileIconProvider::icon( info );
 }

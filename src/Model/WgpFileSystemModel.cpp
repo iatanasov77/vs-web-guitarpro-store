@@ -2,7 +2,6 @@
 
 #include <QDebug>
 
-
 /**
  * https://forum.qt.io/topic/102074/icons-in-qfilesystemmodel/9
  * https://stackoverflow.com/questions/27587035/qfilesystemmodel-custom-icons

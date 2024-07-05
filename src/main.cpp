@@ -21,7 +21,7 @@ void logToFile( QtMsgType type, const QMessageLogContext &context, const QString
 int main( int argc, char **argv )
 {
 	#ifdef QT_DEBUG
-		qInstallMessageHandler( logToFile );
+		//qInstallMessageHandler( logToFile );
 	#endif
     QApplication app( argc, argv );
 

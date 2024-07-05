@@ -139,7 +139,8 @@ QIcon SystemTrayMenu::_createProfileIcon()
 
 void SystemTrayMenu::_displayMyTablatures()
 {
-	dirModel	= new WgpFileSystemModel();
+
+	dirModel	= WgpFileSystem::instance()->model();
 	ui->treeView->setModel( dirModel );
 	ui->treeView->setRootIndex( dirModel->index( dirModel->rootPath() ) );
 

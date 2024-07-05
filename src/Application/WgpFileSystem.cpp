@@ -58,12 +58,13 @@ WgpFileSystem *WgpFileSystem::instance()
 
 void WgpFileSystem::createModel()
 {
-	model			= new WgpFileSystemModel;
+	//qDebug() << "Create FileSystem Model";
+	_model			= new WgpFileSystemModel;
 	iconProvider	= new WgpFileIconProvider();
-	watcher			= new QFileSystemWatcher( { model->rootPath() } ) ;
-	//meta			= new WgpFileSystemMeta( model );
+	watcher			= new QFileSystemWatcher( { _model->rootPath() } ) ;
+	//meta			= new WgpFileSystemMeta( _model );
 
-	model->setIconProvider( iconProvider );
+	_model->setIconProvider( iconProvider );
 	initWatcher();
 
 	connect(
@@ -82,7 +83,7 @@ void WgpFileSystem::createModel()
  */
 void WgpFileSystem::initWatcher()
 {
-	QDirIterator it( model->rootPath(), QDirIterator::Subdirectories );
+	QDirIterator it( _model->rootPath(), QDirIterator::Subdirectories );
 	while ( it.hasNext() ) {
 	    QString categoryPath = it.next();
 	    //qDebug() << "'WgpFileSystem::initWatcher' Category Path: " << categoryPath;
@@ -107,7 +108,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
 
-		model->mkdir( model->index( path ), jc["name"].toString() );
+		_model->mkdir( _model->index( path ), jc["name"].toString() );
 		watcher->addPath( categoryPath );
 	}
 
@@ -155,7 +156,7 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 		if ( jc.contains( "parent" ) )
 			continue;
 
-		_createCategories( jc, model->rootPath() );
+		_createCategories( jc, _model->rootPath() );
 	}
 
 	//serverLoadFinished();
@@ -175,7 +176,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 
 		// Tablature Original File Name
 		QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
-		QString tablaturePath		= model->rootPath() + "/" + tablatureFile["originalName"].toString();
+		QString tablaturePath		= _model->rootPath() + "/" + tablatureFile["originalName"].toString();
 
 		if ( ! QFile::exists( tablaturePath ) ) {
 			//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
@@ -222,4 +223,9 @@ QMap<QString, QString> WgpFileSystem::authHeaders()
 	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
 
 	return headers;
+}
+
+WgpFileSystemModel *WgpFileSystem::model()
+{
+	return _model;
 }

@@ -1,7 +1,10 @@
 #include "HttpFileDownloader.h"
+#include "HttpRequestWorker.h"
 
 HttpFileDownloader::HttpFileDownloader( QObject *parent ) : QObject( parent )
 {
+	manager	= HttpRequestWorker::instance()->manager();
+
 	connect(
 		manager, SIGNAL ( finished( QNetworkReply* ) ),
 		this, SLOT ( fileDownloaded( QNetworkReply* ) )

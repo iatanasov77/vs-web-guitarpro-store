@@ -29,9 +29,9 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
 	resetWorker();
 	commandStack = new QCache<int, QMap<QString, QVariant>>();
 
-    manager = new QNetworkAccessManager( this );
+    _manager = new QNetworkAccessManager( this );
     connect(
-    	manager, SIGNAL( finished( QNetworkReply* ) ),
+    	_manager, SIGNAL( finished( QNetworkReply* ) ),
 		this, SLOT( onManagerFinished( QNetworkReply* ) )
     );
 
@@ -288,24 +288,24 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 	}
 
 	if ( input->httpMethod == "GET" ) {
-	    manager->get( *request );
+	    _manager->get( *request );
 	}
 	else if ( input->httpMethod == "POST" ) {
-		manager->post( *request, requestWrapper->requestContent() );
+		_manager->post( *request, requestWrapper->requestContent() );
 	}
 	else if ( input->httpMethod == "PUT" ) {
-		manager->put( *request, requestWrapper->requestContent() );
+		_manager->put( *request, requestWrapper->requestContent() );
 	}
 	else if ( input->httpMethod == "HEAD" ) {
-		manager->head( *request );
+		_manager->head( *request );
 	}
 	else if ( input->httpMethod == "DELETE" ) {
-		manager->deleteResource( *request );
+		_manager->deleteResource( *request );
 	}
 	else {
 		QByteArray requestContent	= requestWrapper->requestContent();
 		QBuffer buff( & requestContent );
-		manager->sendCustomRequest( *request, input->httpMethod.toLatin1(), &buff );
+		_manager->sendCustomRequest( *request, input->httpMethod.toLatin1(), &buff );
 	}
 }
 
@@ -390,4 +390,9 @@ void HttpRequestWorker::handleMyTablaturesUncategorizedResult()
 		errorMsg	= "Error: " + errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
+}
+
+QNetworkAccessManager *HttpRequestWorker::manager()
+{
+	return _manager;
 }

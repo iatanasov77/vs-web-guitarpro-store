@@ -26,6 +26,7 @@ class HttpRequestWorker : public QObject
 		QNetworkReply::NetworkError errorType;
 
 		static HttpRequestWorker* instance();
+		QNetworkAccessManager *manager();
 		void execute( HttpRequestInput input, QString strRequestName, bool needAuthorization = false );
 		void execute( HttpRequestInput input, QString strRequestName, QMap<QString, QString> headers, bool needAuthorization = false );
 
@@ -38,7 +39,7 @@ class HttpRequestWorker : public QObject
 	private:
 		static HttpRequestWorker *_instance;
 
-		QNetworkAccessManager *manager;
+		QNetworkAccessManager *_manager;
 		QCache<int, QMap<QString, QVariant>> *commandStack;
 
 		QString errorStr;

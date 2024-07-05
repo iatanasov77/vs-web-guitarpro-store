@@ -19,7 +19,7 @@ class WgpFileSystem : public QObject
 		static WgpFileSystem *_instance;
 		HttpFileDownloader *downloader;
 
-		WgpFileSystemModel *model;
+		WgpFileSystemModel *_model;
 		WgpFileIconProvider *iconProvider;
 		QFileSystemWatcher *watcher;
 		WgpFileSystemMeta *meta;
@@ -35,6 +35,7 @@ class WgpFileSystem : public QObject
 	public:
         static WgpFileSystem *instance();
 
+        WgpFileSystemModel *model();
         void sync();
 
     public slots:
