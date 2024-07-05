@@ -32,9 +32,13 @@ class WgpMyTablatures : public QObject
 
         bool getMyTablatures();
 
-        void createTablatureCategry( QString $name );
-        void updateTablatureCategry( int categoryId, QString $name );
-        void deleteTablatureCategry( int categoryId );
+        void createTablatureCategory( QString $name );
+        void updateTablatureCategory( int categoryId, QString $name );
+        void deleteTablatureCategory( int categoryId );
+
+        void createTablature( QString $name );
+		void updateTablature( int tablatureId, QString $name );
+		void deleteTablature( int tablatureId );
 };
 
 #endif // WGP_MYTABLATURES_H

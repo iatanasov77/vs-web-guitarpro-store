@@ -27,7 +27,11 @@ static QMap<QString, QString> HttpRequests {
 
 	{"CREATE_TABLATURE_CATEGORY_REQUEST", "Create TablatureCategory Request"},
 	{"UPDATE_TABLATURE_CATEGORY_REQUEST", "Update TablatureCategory Request"},
-	{"DELETE_TABLATURE_CATEGORY_REQUEST", "Delete TablatureCategory Request"}
+	{"DELETE_TABLATURE_CATEGORY_REQUEST", "Delete TablatureCategory Request"},
+
+	{"CREATE_TABLATURE_REQUEST", "Create Tablature Request"},
+	{"UPDATE_TABLATURE_REQUEST", "Update Tablature Request"},
+	{"DELETE_TABLATURE_REQUEST", "Delete Tablature Request"}
 };
 
 #endif	// GLOBALTYPES_H
