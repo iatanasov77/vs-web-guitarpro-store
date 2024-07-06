@@ -5,6 +5,7 @@
 #include <QString>
 #include <QMetaType>
 
+enum FileSystemObject { OBJECT_TABLATURE, OBJECT_CATEGORY };
 enum HttpRequestVarLayout {NOT_SET, ADDRESS, URL_ENCODED, MULTIPART};
 enum HttpRequestType { REQUEST_TYPE_HTTP , REQUEST_TYPE_JSON };
 Q_DECLARE_METATYPE( HttpRequestType )

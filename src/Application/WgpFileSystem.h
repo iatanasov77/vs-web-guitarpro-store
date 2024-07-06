@@ -38,6 +38,8 @@ class WgpFileSystem : public QObject
         WgpFileSystemModel *model();
         void metaDifferences();
         void sync();
+        void createCategory( QString name, QString path );
+        void downloadTablature( int tabId, QString originalName, QString tablaturePath );
 
     public slots:
         void handleMyCategoriesResult( HttpRequestWorker *worker );

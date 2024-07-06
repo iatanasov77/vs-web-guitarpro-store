@@ -4,6 +4,8 @@
 #include <QFile>
 #include <QJsonObject>
 
+#include "WgpFileSystem.h"
+
 #ifdef Q_OS_WIN
 	#include <fileapi.h>
 #endif
@@ -21,35 +23,184 @@ WgpFileSystemMeta::WgpFileSystemMeta( WgpFileSystemModel *model )
 			SetFileAttributes( lstrPath, FILE_ATTRIBUTE_HIDDEN );
 		#endif
 	}
+
+	initServerObjects();
+	initLocalObjects();
+	//fixLocalObjects();
 }
 
-QJsonDocument WgpFileSystemMeta::loadMetaJson()
+void WgpFileSystemMeta::initServerObjects()
 {
-	QString fileName	= _metaPath + "/server_loaded.json";
+	QJsonDocument document 	= loadServerObjects();
+	metaServerJson			= document.array();
+}
+
+void WgpFileSystemMeta::initLocalObjects()
+{
+	QJsonDocument document 	= loadLocalObjects();
+	metaLocalJson			= document.array();
+
+	if ( ! metaLocalJson.isEmpty() ) {
+		return;
+	}
+
+	QString fileName	= _metaPath + "/local_objects.json";
+	metaLocalJson		= metaServerJson;
+	document.setArray( metaLocalJson );
+
+	QFile jsonFile( fileName );
+	jsonFile.open( QFile::WriteOnly );
+	jsonFile.write( document.toJson() );
+}
+
+QJsonObject WgpFileSystemMeta::createMetaObject( QMap<QString, QVariant> data, FileSystemObject objectType )
+{
+	QJsonObject object;
+
+	if ( objectType == OBJECT_CATEGORY ) {
+		object["id"]			= 0;
+		object["code"]			= "";
+		object["name"]			= data["name"].toString();
+		object["children"]		= QJsonArray();
+		object["tablatures"]	= QJsonObject();
+	} else {
+		object["id"]			= 0;
+		object["enabled"]		= true;
+		object["artist"]		= data["artist"].toString();
+		object["song"]			= data["song"].toString();
+		object["createdAt"]		= QDateTime::currentDateTime().toString( "yyyy-MM-dd" );
+		object["updatedAt"]		= QDateTime::currentDateTime().toString( "yyyy-MM-dd" );
+
+		QJsonObject tablatureFile;
+		tablatureFile["originalName"]	= data["originalName"].toString();
+		tablatureFile["path"]			= data["path"].toString();
+
+		object["tablatureFile"]	= tablatureFile;
+	}
+
+	return object;
+}
+
+void WgpFileSystemMeta::fixLocalObjects()
+{
+	QDirIterator it( _model->rootPath(), QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
+	QDir dir;
+
+	while ( it.hasNext() ) {
+		QString categoryPath = it.next();
+		//qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Category Path: " << categoryPath;
+
+		QFileInfo fi( categoryPath );
+		if ( fi.isDir() ) {
+			dir	= QDir( categoryPath );
+			if ( ! inLocalObjects( dir.dirName(), OBJECT_CATEGORY ) ) {
+				qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Not Found: " << dir.dirName();
+
+				QMap<QString, QVariant> data;
+				data.insert( "name", QVariant( dir.dirName() ) );
+				appendToLocalObjects( createMetaObject( data, OBJECT_CATEGORY ) );
+			}
+		} else {
+
+		}
+	}
+}
+
+QJsonDocument WgpFileSystemMeta::loadLocalObjects()
+{
+	QString fileName	= _metaPath + "/local_objects.json";
 
     QFile jsonFile( fileName );
     jsonFile.open( QFile::ReadOnly );
+
     return QJsonDocument().fromJson( jsonFile.readAll() );
 }
 
-void WgpFileSystemMeta::saveMetaJson( QJsonDocument document )
+void WgpFileSystemMeta::saveLocalObjects( QJsonDocument document )
 {
-	QString fileName	= _metaPath + "/server_loaded.json";
+	QString fileName	= _metaPath + "/local_objects.json";
 
     QFile jsonFile( fileName );
     jsonFile.open( QFile::WriteOnly );
     jsonFile.write( document.toJson() );
 }
 
-void WgpFileSystemMeta::appendToServerMeta( QJsonObject jc )
+void WgpFileSystemMeta::appendToLocalObjects( QJsonObject jc )
 {
+	metaLocalJson.append( jc );
+
+	QJsonDocument document 	= loadLocalObjects();
+	document.setArray( metaLocalJson );
+	saveLocalObjects( document );
+}
+
+/**
+ * @TODO Should be Pass 'code' Not 'name'
+ */
+bool WgpFileSystemMeta::inLocalObjects( QString name, FileSystemObject objectType )
+{
+	for ( auto v : metaLocalJson ) {
+	    QJsonObject jc	= v.toObject();
+
+	    if ( objectType == OBJECT_CATEGORY ) {
+			if ( name == jc["name"].toString() ) {
+				return true;
+			}
+		} else {
+			QJsonObject tabs	= jc.value( "tablatures" ).toObject();
+			foreach( const QString& key, tabs.keys() ) {
+				QJsonObject jt	= tabs.value( key ).toObject();
+
+				QJsonObject tablatureFile	= jt.value( "tablatureFile" ).toObject();
+				if ( name == tablatureFile["originalName"].toString() ) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+QJsonDocument WgpFileSystemMeta::loadServerObjects()
+{
+	QString fileName	= _metaPath + "/server_objects.json";
+
+    QFile jsonFile( fileName );
+    jsonFile.open( QFile::ReadOnly );
+
+    return QJsonDocument().fromJson( jsonFile.readAll() );
+}
+
+void WgpFileSystemMeta::saveServerObjects( QJsonDocument document )
+{
+	QString fileName	= _metaPath + "/server_objects.json";
+
+    QFile jsonFile( fileName );
+    jsonFile.open( QFile::WriteOnly );
+    jsonFile.write( document.toJson() );
+}
+
+void WgpFileSystemMeta::appendToServerObjects( QJsonObject jc )
+{
+	metaLocalJson.append( jc );
+
+	QJsonDocument document 	= loadLocalObjects();
+	document.setArray( metaLocalJson );
+	saveLocalObjects( document );
+}
+
+void WgpFileSystemMeta::refreshServerObjects( QJsonObject jc )
+{
+	clearMeta();
+
 	foreach( const QString& key, jc.keys() ) {
 		QJsonObject meta	= jc.value( key ).toObject();
 
 		metaServerJson.push_back( meta );
 	}
 
-	saveMetaJson( QJsonDocument::fromVariant( metaServerJson.toVariantList() ) );
+	saveServerObjects( QJsonDocument::fromVariant( metaServerJson.toVariantList() ) );
 }
 
 void WgpFileSystemMeta::clearMeta()
@@ -65,17 +216,13 @@ void WgpFileSystemMeta::clearMeta()
 
 QStringList WgpFileSystemMeta::compareMeta()
 {
-	if ( metaLocalJson.isEmpty() ) {
-		metaLocalJson	= metaServerJson;
-	}
-
 	m_differences.clear();
 
 	QJsonDocument metaServer	= QJsonDocument::fromVariant( metaServerJson.toVariantList() );
 	QJsonDocument metaLocal		= QJsonDocument::fromVariant( metaLocalJson.toVariantList() );
 
 	QJsonObject obj1 = metaServer.object();
-	QJsonObject obj2 = metaServer.object();
+	QJsonObject obj2 = metaLocal.object();
 
 	compareObjects( *( new QStringList() ), obj1, obj2 );
 
