@@ -1,3 +1,15 @@
+0.5.1	|	Release date: **07.07.2024**
+============================================
+* New Features and Improvements:
+  - Debugging HttpRequestWorker .
+  - Create a Button to Open WebGuitarPro Folder.
+  - Improve SystemTrayMenu.
+  - Create Methods to Create, Update and Delete Tablature Categories.
+  - Create Methods to Create, Update and Delete Tablatures.
+  - Improve WgpFileSystemMeta Component.
+  - Improve File System Wathing.
+
+
 0.5.0	|	Release date: **03.07.2024**
 ============================================
 * New Features , Fixes and Improvements:
