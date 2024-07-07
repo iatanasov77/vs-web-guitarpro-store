@@ -83,8 +83,23 @@ QJsonObject WgpFileSystemMeta::createMetaObject( QMap<QString, QVariant> data, F
 
 void WgpFileSystemMeta::fixLocalObjects()
 {
-	QDirIterator it( _model->rootPath(), QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
+	QStringList newCategories = findNewCategories( _model->rootPath() );
+
+	for ( int i = 0; i < newCategories.size(); ++i ) {
+		qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Not Found: " << newCategories[i];
+
+		QMap<QString, QVariant> data;
+		data.insert( "name", QVariant( newCategories[i] ) );
+
+		appendToLocalObjects( createMetaObject( data, OBJECT_CATEGORY ) );
+	}
+}
+
+QStringList WgpFileSystemMeta::findNewCategories( QString path )
+{
+	QDirIterator it( path, QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
 	QDir dir;
+	QStringList newCategories = QStringList();
 
 	while ( it.hasNext() ) {
 		QString categoryPath = it.next();
@@ -94,16 +109,14 @@ void WgpFileSystemMeta::fixLocalObjects()
 		if ( fi.isDir() ) {
 			dir	= QDir( categoryPath );
 			if ( ! inLocalObjects( dir.dirName(), OBJECT_CATEGORY ) ) {
-				qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Not Found: " << dir.dirName();
-
-				QMap<QString, QVariant> data;
-				data.insert( "name", QVariant( dir.dirName() ) );
-				appendToLocalObjects( createMetaObject( data, OBJECT_CATEGORY ) );
+				newCategories << dir.dirName();
 			}
 		} else {
 
 		}
 	}
+
+	return newCategories;
 }
 
 QJsonDocument WgpFileSystemMeta::loadLocalObjects()
@@ -208,10 +221,11 @@ void WgpFileSystemMeta::clearMeta()
 	while( metaServerJson.count() ) {
 		metaServerJson.pop_back();
 	}
-
+	/*
 	while( metaLocalJson.count() ) {
 		metaLocalJson.pop_back();
 	}
+	*/
 }
 
 QStringList WgpFileSystemMeta::compareMeta()

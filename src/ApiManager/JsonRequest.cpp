@@ -1,6 +1,5 @@
 #include "JsonRequest.h"
 
-#include <QUrl>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -19,7 +18,6 @@ QNetworkRequest *JsonRequest::createRequest()
 	_requestContent		= doc.toJson();
 
 	// prepare connection
-	_request = new QNetworkRequest( QUrl( _input->httpUrl ) );
 	_request->setRawHeader( "Content-Type", "application/json" );
 
 	return _request;

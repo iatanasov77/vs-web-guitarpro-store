@@ -26,6 +26,7 @@ HttpRequestWorker *HttpRequestWorker::_instance = 0;
 
 HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
 {
+	working = false;
 	resetWorker();
 	commandStack = new QCache<int, QMap<QString, QVariant>>();
 
@@ -81,8 +82,8 @@ void HttpRequestWorker::execute( HttpRequestInput input, QString strRequestName,
 	command->insert( "request", QVariant::fromValue( requestWrapper ) );
 	command->insert( "executed", QVariant( false ) );
 
-	if ( commandStack->isEmpty() ) {
-		qDebug() << "HttpRequestWorker Sending Request With Input and RequestName ...";
+	if ( ! working ) {
+		//qDebug() << "HttpRequestWorker Sending Request With Input and RequestName ...";
 		_sendRequest( requestWrapper, needAuthorization );
 	}
 
@@ -114,8 +115,8 @@ void HttpRequestWorker::execute( HttpRequestInput input, QString strRequestName,
 	command->insert( "request", QVariant::fromValue( requestWrapper ) );
 	command->insert( "executed", QVariant( false ) );
 
-	if ( commandStack->isEmpty() ) {
-		qDebug() << "HttpRequestWorker Sending Request With Input, RequestName and Headers ...";
+	if ( ! working ) {
+		//qDebug() << "HttpRequestWorker Sending Request With Input, RequestName and Headers ...";
 		_sendRequest( requestWrapper, needAuthorization );
 	}
 
@@ -133,15 +134,10 @@ void HttpRequestWorker::resetWorker()
 
 void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
 {
-	/*  */
+	working = false;
 	QNetworkRequest request	= reply->request();
-	if ( request.url().toString() == "http://api.wgp.lh/api/my-categories" ) {
-		//debugRequest( &request );
-		//debugNetworkReply( reply );
-		//return;
-	}
 
-    errorType = reply->error();
+	errorType = reply->error();
     if ( errorType == QNetworkReply::NoError ) {
         response = reply->readAll();
         //debugNetworkReplyResponse( "HttpRequestWorker::onManagerFinished", response );
@@ -171,19 +167,19 @@ void HttpRequestWorker::sendNextRequest()
 		}
 
 		if ( sendNext && lastFinishedRequest != requestWrapper->requestName ) {
-			qDebug() << "Next Request: " << requestWrapper->requestName;
+			//qDebug() << "Next Request: " << requestWrapper->requestName;
 			_sendRequest( requestWrapper, true );
 			break;
 		}
 
-		qDebug() << "Worker Request Name: " << requestName;
+		//qDebug() << "Worker Request Name: " << requestName;
 		if ( requestWrapper && requestWrapper->requestName == requestName ) {
 			commandStack->object( i )->insert( "executed", QVariant( true ) );
 			sendNext 			= true;
 			lastFinishedRequest = requestName;
 
-			qDebug() << "Current Request Executed: " << commandStack->object( i )->value( "executed" ).toBool();
-			qDebug() << "Last Finished Request: " << lastFinishedRequest;
+			//qDebug() << "Current Request Executed: " << commandStack->object( i )->value( "executed" ).toBool();
+			//qDebug() << "Last Finished Request: " << lastFinishedRequest;
 		}
 	}
 }
@@ -274,6 +270,7 @@ void HttpRequestWorker::_authorizeRequest( QNetworkRequest *request )
 
 void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool needAuthorization )
 {
+	working 					= true;
 	requestName					= requestWrapper->requestName;
 	QNetworkRequest *request	= requestWrapper->request();
 	HttpRequestInput *input		= requestWrapper->requestInput();
@@ -323,6 +320,12 @@ void HttpRequestWorker::handleRequest()
 	} else if( requestName == HttpRequests["GET_MYTABLATURESUNCATEGORIZED_REQUEST"] ) {
 		//return;
 		handleMyTablaturesUncategorizedResult();
+	} else if( requestName == HttpRequests["CREATE_TABLATURE_CATEGORY_REQUEST"] || requestName == HttpRequests["UPDATE_TABLATURE_CATEGORY_REQUEST"] ) {
+		//return;
+		handleUpdateCategoryResult();
+	} else if( requestName == HttpRequests["CREATE_TABLATURE_REQUEST"] || requestName == HttpRequests["UPDATE_TABLATURE_REQUEST"] ) {
+		//return;
+		handleUploadTablatureResult();
 	} else {
 		qDebug() << "UNDEFINED HTTP REQUEST !!!";
 	}
@@ -386,6 +389,30 @@ void HttpRequestWorker::handleMyTablaturesUncategorizedResult()
 
 	if ( errorType == QNetworkReply::NoError ) {
 		emit myTablaturesResponseReady( this );
+	} else {
+		errorMsg	= "Error: " + errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleUpdateCategoryResult()
+{
+	QString errorMsg;
+
+	if ( errorType == QNetworkReply::NoError ) {
+		emit myCategoryUpdateResponseReady( this );
+	} else {
+		errorMsg	= "Error: " + errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleUploadTablatureResult()
+{
+	QString errorMsg;
+
+	if ( errorType == QNetworkReply::NoError ) {
+		emit myTablatureUploadResponseReady( this );
 	} else {
 		errorMsg	= "Error: " + errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );

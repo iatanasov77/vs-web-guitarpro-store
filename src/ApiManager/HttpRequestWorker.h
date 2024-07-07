@@ -35,6 +35,8 @@ class HttpRequestWorker : public QObject
 		void loginCheckResponseReady( HttpRequestWorker *worker );
 		void myCategoriesResponseReady( HttpRequestWorker *worker );
 		void myTablaturesResponseReady( HttpRequestWorker *worker );
+		void myCategoryUpdateResponseReady( HttpRequestWorker *worker );
+		void myTablatureUploadResponseReady( HttpRequestWorker *worker );
 
 	private:
 		static HttpRequestWorker *_instance;
@@ -45,6 +47,7 @@ class HttpRequestWorker : public QObject
 		QString errorStr;
 		QString requestName;
 		QString lastFinishedRequest;
+		bool working;
 
 		HttpRequestWorker( QObject *parent = 0 );
 		static HttpRequestWorker* createInstance();
@@ -63,6 +66,8 @@ class HttpRequestWorker : public QObject
 		void handleMyCategoriesResult();
 		void handleMyTablaturesResult();
 		void handleMyTablaturesUncategorizedResult();
+		void handleUpdateCategoryResult();
+		void handleUploadTablatureResult();
 
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );

@@ -30,6 +30,7 @@ class WgpFileSystemMeta
 	public:
 		WgpFileSystemMeta( WgpFileSystemModel *model );
 
+		QStringList findNewCategories( QString path );
 		QJsonObject createMetaObject( QMap<QString, QVariant> data, FileSystemObject objectType );
 		bool inLocalObjects( QString categoryName, FileSystemObject objectType );
 		QJsonDocument loadLocalObjects();

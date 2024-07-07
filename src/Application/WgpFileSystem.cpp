@@ -17,6 +17,7 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 {
 	Q_UNUSED( parent );
 
+	allowedMimeTypes = QStringList{ "application/gpx+xml", "application/octet-stream" };
 	downloader	= new HttpFileDownloader();
 
 	createModel();
@@ -29,6 +30,16 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	connect(
 		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( HttpRequestWorker* ) ),
 		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
+	);
+
+	connect(
+		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( HttpRequestWorker* ) ),
+		this, SLOT( handleUpdateCategoryResult( HttpRequestWorker* ) )
+	);
+
+	connect(
+		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( HttpRequestWorker* ) ),
+		this, SLOT( handleUploadTablatureResult( HttpRequestWorker* ) )
 	);
 
 	connect(
@@ -69,8 +80,13 @@ void WgpFileSystem::createModel()
 	initWatcher();
 
 	connect(
+		_model, SIGNAL( fileRenamed( const QString&, const QString&, const QString& ) ),
+		this, SLOT( fileRenamed( QString, QString, QString ) )
+	);
+
+	connect(
 		watcher, SIGNAL( directoryChanged( QString ) ),
-		this, SLOT( fileModified( QString ) )
+		this, SLOT( directoryModified( QString ) )
 	);
 
 	connect(
@@ -131,6 +147,22 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	}
 }
 
+void WgpFileSystem::handleUpdateCategoryResult( HttpRequestWorker *worker )
+{
+	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonObject result	= doc.object();
+	meta->appendToServerObjects( result );
+	meta->appendToLocalObjects( result );
+}
+
+void WgpFileSystem::handleUploadTablatureResult( HttpRequestWorker *worker )
+{
+	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonObject result	= doc.object();
+	meta->appendToServerObjects( result );
+	meta->appendToLocalObjects( result );
+}
+
 void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
@@ -178,7 +210,6 @@ void WgpFileSystem::serverLoadFinished()
 	{
 	    qDebug() << i;
 	}
-
 }
 
 void WgpFileSystem::metaDifferences()
@@ -190,7 +221,6 @@ void WgpFileSystem::metaDifferences()
 	{
 	    qDebug() << i;
 	}
-
 }
 
 void WgpFileSystem::handleDownloadedTablature( QString targetPath )
@@ -198,15 +228,45 @@ void WgpFileSystem::handleDownloadedTablature( QString targetPath )
 	watcher->addPath( targetPath );
 }
 
+void WgpFileSystem::fileRenamed( QString path, QString oldName, QString newName )
+{
+	qDebug() << "'WgpFileSystem::fileRenamed' Path Renamed: " << path;
+	qDebug() << "'WgpFileSystem::fileRenamed' Old Name: " << oldName;
+	qDebug() << "'WgpFileSystem::fileRenamed' New Name: " << newName;
+}
+
 void WgpFileSystem::fileModified( QString path )
 {
 	qDebug() << "'WgpFileSystem::fileModified' Path Modified: " << path;
 	metaDifferences();
 	QFileInfo fi( path );
-	if ( fi.isFile() ) {
-		QDateTime lastModified	= fi.lastModified();
-		QString mimeType		= QMimeDatabase().mimeTypeForFile( path ).name();
-		qDebug() << "Mime type:" << mimeType;
+
+	QDateTime lastModified	= fi.lastModified();
+	QString mimeType		= QMimeDatabase().mimeTypeForFile( path ).name();
+	//qDebug() << "Mime type:" << mimeType;
+	if ( allowedMimeTypes.contains( mimeType ) ) {
+		//WgpMyTablatures::instance()->createTablature( path );
+		//WgpMyTablatures::instance()->updateTablature( 1, path );
+	}
+}
+
+void WgpFileSystem::directoryModified( QString path )
+{
+	qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
+	QString categoryPath;
+	metaDifferences();
+	QFileInfo fi( path );
+
+	QDateTime lastModified		= fi.lastModified();
+	QStringList newCategories	= meta->findNewCategories( _model->rootPath() );
+	for ( int i = 0; i < newCategories.size(); ++i ) {
+		//qDebug() << "'WgpFileSystem::directoryModified' Creating New Category ...";
+
+		//WgpMyTablatures::instance()->createTablatureCategory( newCategories[i] );
+		//WgpMyTablatures::instance()->updateTablatureCategory( 1, newCategories[i] );
+
+		categoryPath	= QString( "%1/%2" ).arg( path, newCategories[i] );
+		watcher->addPath( categoryPath );
 	}
 }
 

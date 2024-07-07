@@ -17,6 +17,7 @@ class WgpFileSystem : public QObject
 
 	private:
 		static WgpFileSystem *_instance;
+		QStringList allowedMimeTypes;
 		HttpFileDownloader *downloader;
 
 		WgpFileSystemModel *_model;
@@ -44,9 +45,13 @@ class WgpFileSystem : public QObject
     public slots:
         void handleMyCategoriesResult( HttpRequestWorker *worker );
         void handleMyTablaturesResult( HttpRequestWorker *worker );
+        void handleUpdateCategoryResult( HttpRequestWorker *worker );
+        void handleUploadTablatureResult( HttpRequestWorker *worker );
         void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
+        void fileRenamed( QString path, QString oldName, QString newName );
         void fileModified( QString path );
+        void directoryModified( QString path );
 
 };
 
