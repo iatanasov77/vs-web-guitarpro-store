@@ -26,7 +26,6 @@ WgpFileSystemMeta::WgpFileSystemMeta( WgpFileSystemModel *model )
 
 	initServerObjects();
 	initLocalObjects();
-	//fixLocalObjects();
 }
 
 void WgpFileSystemMeta::initServerObjects()
@@ -79,44 +78,6 @@ QJsonObject WgpFileSystemMeta::createMetaObject( QMap<QString, QVariant> data, F
 	}
 
 	return object;
-}
-
-void WgpFileSystemMeta::fixLocalObjects()
-{
-	QStringList newCategories = findNewCategories( _model->rootPath() );
-
-	for ( int i = 0; i < newCategories.size(); ++i ) {
-		qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Not Found: " << newCategories[i];
-
-		QMap<QString, QVariant> data;
-		data.insert( "name", QVariant( newCategories[i] ) );
-
-		appendToLocalObjects( createMetaObject( data, OBJECT_CATEGORY ) );
-	}
-}
-
-QStringList WgpFileSystemMeta::findNewCategories( QString path )
-{
-	QDirIterator it( path, QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
-	QDir dir;
-	QStringList newCategories = QStringList();
-
-	while ( it.hasNext() ) {
-		QString categoryPath = it.next();
-		//qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Category Path: " << categoryPath;
-
-		QFileInfo fi( categoryPath );
-		if ( fi.isDir() ) {
-			dir	= QDir( categoryPath );
-			if ( ! inLocalObjects( dir.dirName(), OBJECT_CATEGORY ) ) {
-				newCategories << dir.dirName();
-			}
-		} else {
-
-		}
-	}
-
-	return newCategories;
 }
 
 QJsonDocument WgpFileSystemMeta::loadLocalObjects()

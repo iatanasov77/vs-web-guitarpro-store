@@ -28,6 +28,8 @@ class WgpFileSystem : public QObject
 		WgpFileSystem( QObject *_parent = nullptr );
         static WgpFileSystem *createInstance();
 
+        void fixLocalMetaObjects();
+        QStringList findNewCategories( QString path );
         void createModel();
         void initWatcher();
         QMap<QString, QString> authHeaders();

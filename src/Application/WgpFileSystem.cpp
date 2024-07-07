@@ -21,6 +21,7 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	downloader	= new HttpFileDownloader();
 
 	createModel();
+	//fixLocalMetaObjects();
 
 	connect(
 		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( HttpRequestWorker* ) ),
@@ -258,7 +259,7 @@ void WgpFileSystem::directoryModified( QString path )
 	QFileInfo fi( path );
 
 	QDateTime lastModified		= fi.lastModified();
-	QStringList newCategories	= meta->findNewCategories( _model->rootPath() );
+	QStringList newCategories	= findNewCategories( _model->rootPath() );
 	for ( int i = 0; i < newCategories.size(); ++i ) {
 		//qDebug() << "'WgpFileSystem::directoryModified' Creating New Category ...";
 
@@ -301,4 +302,42 @@ void WgpFileSystem::downloadTablature( int tabId, QString originalName, QString 
 						.arg( originalName );
 
 	downloader->download( fileUrl, tablaturePath, authHeaders() );
+}
+
+void WgpFileSystem::fixLocalMetaObjects()
+{
+	QStringList newCategories = findNewCategories( _model->rootPath() );
+
+	for ( int i = 0; i < newCategories.size(); ++i ) {
+		qDebug() << "'WgpFileSystem::fixLocalMetaObjects' Not Found: " << newCategories[i];
+
+		QMap<QString, QVariant> data;
+		data.insert( "name", QVariant( newCategories[i] ) );
+
+		meta->appendToLocalObjects( meta->createMetaObject( data, OBJECT_CATEGORY ) );
+	}
+}
+
+QStringList WgpFileSystem::findNewCategories( QString path )
+{
+	QDirIterator it( path, QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
+	QDir dir;
+	QStringList newCategories = QStringList();
+
+	while ( it.hasNext() ) {
+		QString categoryPath = it.next();
+		//qDebug() << "'WgpFileSystem::fixLocalObjects' Category Path: " << categoryPath;
+
+		QFileInfo fi( categoryPath );
+		if ( fi.isDir() ) {
+			dir	= QDir( categoryPath );
+			if ( ! meta->inLocalObjects( dir.dirName(), OBJECT_CATEGORY ) ) {
+				newCategories << dir.dirName();
+			}
+		} else {
+
+		}
+	}
+
+	return newCategories;
 }

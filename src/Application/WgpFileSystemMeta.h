@@ -21,7 +21,6 @@ class WgpFileSystemMeta
 		void clearMeta();
 		void initServerObjects();
 		void initLocalObjects();
-		void fixLocalObjects();
 
 		void compareObjects( QStringList keyStack, const QJsonObject obj1, const QJsonObject obj2 );
 		void compareArrays( QStringList keyStack, const QJsonArray arr1, const QJsonArray arr2 );
@@ -30,7 +29,6 @@ class WgpFileSystemMeta
 	public:
 		WgpFileSystemMeta( WgpFileSystemModel *model );
 
-		QStringList findNewCategories( QString path );
 		QJsonObject createMetaObject( QMap<QString, QVariant> data, FileSystemObject objectType );
 		bool inLocalObjects( QString categoryName, FileSystemObject objectType );
 		QJsonDocument loadLocalObjects();
