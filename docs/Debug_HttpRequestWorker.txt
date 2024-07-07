@@ -1,0 +1,4 @@
+
+
+vim /home/vagrant/tools/qt-5.15.2/mingw_64/include/QtCore/qarraydata.h
+

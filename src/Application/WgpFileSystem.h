@@ -17,9 +17,10 @@ class WgpFileSystem : public QObject
 
 	private:
 		static WgpFileSystem *_instance;
+		QStringList allowedMimeTypes;
 		HttpFileDownloader *downloader;
 
-		WgpFileSystemModel *model;
+		WgpFileSystemModel *_model;
 		WgpFileIconProvider *iconProvider;
 		QFileSystemWatcher *watcher;
 		WgpFileSystemMeta *meta;
@@ -35,14 +36,22 @@ class WgpFileSystem : public QObject
 	public:
         static WgpFileSystem *instance();
 
+        WgpFileSystemModel *model();
+        void metaDifferences();
         void sync();
+        void createCategory( QString name, QString path );
+        void downloadTablature( int tabId, QString originalName, QString tablaturePath );
 
     public slots:
         void handleMyCategoriesResult( HttpRequestWorker *worker );
         void handleMyTablaturesResult( HttpRequestWorker *worker );
+        void handleUpdateCategoryResult( HttpRequestWorker *worker );
+        void handleUploadTablatureResult( HttpRequestWorker *worker );
         void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
+        void fileRenamed( QString path, QString oldName, QString newName );
         void fileModified( QString path );
+        void directoryModified( QString path );
 
 };
 

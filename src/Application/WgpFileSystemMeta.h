@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
+#include "GlobalTypes.h"
 #include "Model/WgpFileSystemModel.h"
 
 class WgpFileSystemMeta
@@ -17,6 +18,11 @@ class WgpFileSystemMeta
 		QJsonArray metaLocalJson;
 		QStringList m_differences;
 
+		void clearMeta();
+		void initServerObjects();
+		void initLocalObjects();
+		void fixLocalObjects();
+
 		void compareObjects( QStringList keyStack, const QJsonObject obj1, const QJsonObject obj2 );
 		void compareArrays( QStringList keyStack, const QJsonArray arr1, const QJsonArray arr2 );
 		void compareValues( QStringList keyStack, const QJsonValue val1, const QJsonValue val2 );
@@ -24,10 +30,17 @@ class WgpFileSystemMeta
 	public:
 		WgpFileSystemMeta( WgpFileSystemModel *model );
 
-		QJsonDocument loadMetaJson();
-		void saveMetaJson( QJsonDocument document );
-		void appendToServerMeta( QJsonObject jc );
-		void clearMeta();
+		QStringList findNewCategories( QString path );
+		QJsonObject createMetaObject( QMap<QString, QVariant> data, FileSystemObject objectType );
+		bool inLocalObjects( QString categoryName, FileSystemObject objectType );
+		QJsonDocument loadLocalObjects();
+		void saveLocalObjects( QJsonDocument document );
+		void appendToLocalObjects( QJsonObject jc );
+
+		QJsonDocument loadServerObjects();
+		void saveServerObjects( QJsonDocument document );
+		void appendToServerObjects( QJsonObject jc );
+		void refreshServerObjects( QJsonObject jc );
 		QStringList compareMeta();
 };
 

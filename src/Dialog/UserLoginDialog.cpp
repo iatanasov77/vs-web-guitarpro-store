@@ -1,6 +1,7 @@
 #include "UserLoginDialog.h"
 #include "ui_UserLoginDialog.h"
 
+#include <QDebug>
 #include <QNetworkReply>
 #include <QMessageBox>
 #include <QPushButton>
@@ -55,13 +56,14 @@ void UserLoginDialog::save()
 
 void UserLoginDialog::handleAuthResult( HttpRequestWorker *worker )
 {
+	qDebug() << "'UserLoginDialog::handleAuthResult' CALLED";
 	waitingSpinner->stop();
 	setEnabled( true );
 
+	//qDebug() << "Worker Error Type: " << worker->errorType;
+	//return;
+
     if ( worker->errorType == QNetworkReply::NoError ) {
     	accept();
-    } else {
-    	QString errorMsg	= "Error: " + worker->errorStr;
-        QMessageBox::information( this, "", errorMsg );
     }
 }

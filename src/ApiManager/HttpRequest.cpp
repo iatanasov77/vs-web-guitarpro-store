@@ -134,11 +134,7 @@ QNetworkRequest *HttpRequest::createRequest()
 		_requestContent.append( boundary_delimiter.toUtf8() );
 	}
 
-
 	// prepare connection
-	_request = new QNetworkRequest( QUrl( _input->httpUrl ) );
-	_request->setRawHeader( "User-Agent", "Agent name goes here" );
-
 	if ( _input->varLayout == URL_ENCODED ) {
 		_request->setHeader( QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded" );
 	}

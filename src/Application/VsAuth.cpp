@@ -52,8 +52,8 @@ bool VsAuth::login( QString username, QString password )
 	input.addVar( "username", username );
 	input.addVar( "password", password );
 
-	HttpRequestWorker::instance()->setObjectName( RequestTypes[LOGIN_CHECK] );
-	HttpRequestWorker::instance()->execute( &input, HttpRequests["LOGIN_REQUEST"] );
+	//HttpRequestWorker::instance()->setObjectName( RequestTypes[LOGIN_CHECK] );
+	HttpRequestWorker::instance()->execute( input, HttpRequests["LOGIN_REQUEST"] );
 
 	return true;
 }

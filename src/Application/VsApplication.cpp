@@ -5,7 +5,6 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QTranslator>
-#include <QLocale>
 #include <QDateTime>
 #include <QSettings>
 #include <QVersionNumber>
@@ -22,7 +21,8 @@ VsApplication *VsApplication::_instance = 0;
 
 VsApplication::VsApplication()
 {
-	m_currLang	= "en";
+	defaultLocale	= QLocale( QLocale::English, QLocale::UnitedStates );
+	QLocale::setDefault( defaultLocale );
 
 	#ifdef QT_DEBUG
 		m_apiUrl	= "http://api.wgp.lh/api";
@@ -108,18 +108,19 @@ QMap<QString, QString> VsApplication::languages()
 	return languages;
 }
 
-void VsApplication::loadLanguage( const QString& rLanguage )
+void VsApplication::loadLanguage( const QLocale& locale )
 {
-	if( m_currLang != rLanguage ) {
-		m_currLang		= rLanguage;
-		QLocale locale	= QLocale( m_currLang );
+	if( defaultLocale != locale ) {
+		defaultLocale	= locale;
+		QLocale::setDefault( defaultLocale );
 
-		QLocale::setDefault( locale );
 		QString languageName	= QLocale::languageToString( locale.language() );
-		switchTranslator( m_translator, QString( "QVocabulary_%1.qm" ).arg( rLanguage ) );
+		QString rLanguage		= locale.name().split('_').at( 0 ).toLower();
+
+		switchTranslator( m_translator, QString( "QVocabulary_%1.qm" ).arg( locale.language() ) );
 		switchTranslator( m_translatorQt, QString( "qt_%1.qm" ).arg( rLanguage ) );
 
-		VsSettings::instance()->setValue( SettingsKeys["LANGUAGE"], m_currLang, "General" );
+		VsSettings::instance()->setValue( SettingsKeys["LANGUAGE"], rLanguage, "General" );
 	}
 }
 
@@ -141,7 +142,8 @@ void VsApplication::switchTranslator( QTranslator& translator, const QString& fi
 QString VsApplication::appAboutBody()
 {
 	QString data;
-	QString fileName	= QString( ":/Resources/html/about_%1.html" ).arg( m_currLang );
+	QString rLanguage	= defaultLocale.name().split('_').at( 0 ).toLower();
+	QString fileName	= QString( ":/Resources/html/about_%1.html" ).arg( rLanguage );
 
 	QFile file( fileName );
 	if( ! file.open( QIODevice::ReadOnly ) ) {
