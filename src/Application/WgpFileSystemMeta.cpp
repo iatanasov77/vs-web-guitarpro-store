@@ -174,7 +174,9 @@ void WgpFileSystemMeta::refreshServerObjects( QJsonObject jc )
 		metaServerJson.push_back( meta );
 	}
 
-	saveServerObjects( QJsonDocument::fromVariant( metaServerJson.toVariantList() ) );
+	QJsonDocument newMetaObjects	= QJsonDocument::fromVariant( metaServerJson.toVariantList() );
+	saveServerObjects( newMetaObjects );
+	saveLocalObjects( newMetaObjects );
 }
 
 void WgpFileSystemMeta::clearMeta()

@@ -1,69 +1,43 @@
 #include "HttpFileDownloader.h"
-#include "HttpRequestWorker.h"
+
+#include <QDebug>
+#include <QSaveFile>
 
 HttpFileDownloader::HttpFileDownloader( QObject *parent ) : QObject( parent )
 {
-	manager	= HttpRequestWorker::instance()->manager();
-
 	connect(
-		manager, SIGNAL ( finished( QNetworkReply* ) ),
-		this, SLOT ( fileDownloaded( QNetworkReply* ) )
+		HttpRequestWorker::instance(), SIGNAL ( myTablatureDownloadResponseReady( WorkerState ) ),
+		this, SLOT ( fileDownloaded( WorkerState ) )
 	);
 }
 
 HttpFileDownloader::~HttpFileDownloader() { }
 
-void HttpFileDownloader::fileDownloaded( QNetworkReply* pReply )
+void HttpFileDownloader::fileDownloaded( WorkerState state )
 {
-	for( auto key : downloadFiles.keys() ) {
-		if ( downloadFiles.value( key ) == pReply->request().url().toString() ) {
-			m_DownloadedData[key]	= pReply->readAll();
-			writeFile( key, m_DownloadedData[key] );
+	QString fileTarget	= state.downloadedFile;
+	QByteArray fileData	= state.response;
 
-			//emit a signal
-			pReply->deleteLater();
-			emit downloaded( key );
-
-			//qDebug() << "FILE DOWNLOADED: " << key << "   (" << m_DownloadedData[key].length() << " BITES)";
-		}
-	}
-}
-
-QByteArray HttpFileDownloader::downloadedData( QString target ) const
-{
-	return m_DownloadedData[target];
+	qDebug() << "FILE DOWNLOADED: " << fileTarget << "   (" << fileData.length() << " BITES )";
+	writeFile( fileTarget, fileData );
+	emit downloaded( fileTarget );
 }
 
 void HttpFileDownloader::download( QString url, QString targetPath )
 {
-	downloadFiles[targetPath] = url;
+	qDebug() << "'HttpFileDownloader::download' Download URL: " << url;
 
-	QUrl fileUrl( url );
-	QNetworkRequest request( fileUrl );
-	manager->get( request );
-}
+	HttpRequestInput input( url, "GET", targetPath );
+	input.requestType	= REQUEST_TYPE_DOWNLOAD;
 
-void HttpFileDownloader::download( QString url, QString targetPath, QMap<QString, QString> headers )
-{
-	downloadFiles[targetPath] = url;
-
-	QUrl fileUrl( url );
-	QNetworkRequest request( fileUrl );
-
-	if ( ! headers.empty() ) {
-		foreach ( const QString &key, headers.keys() ) {
-			request.setRawHeader( key.toUtf8(), headers.value( key ).toUtf8() );
-		}
-	}
-
-	manager->get( request );
+	HttpRequestWorker::instance()->execute( input, HttpRequests["DOWNLOAD_TABLATURE_REQUEST"], true );
 }
 
 void HttpFileDownloader::writeFile( QString filePath, QByteArray data )
 {
-	files << new QSaveFile( filePath );
-	files.last()->open( QIODevice::WriteOnly );
-	files.last()->write( data );
+	QSaveFile *flie	= new QSaveFile( filePath );
 
-	files.last()->commit();	// Calling commit() is mandatory, otherwise nothing will be written.
+	flie->open( QIODevice::WriteOnly );
+	flie->write( data );
+	flie->commit();	// Calling commit() is mandatory, otherwise nothing will be written.
 }

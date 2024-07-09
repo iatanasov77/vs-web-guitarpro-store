@@ -13,13 +13,14 @@ class HttpRequestInput
 	public:
 		QString httpUrl;
 		QString httpMethod;
+		QString targetPath;	// Used in Download Requests
 		HttpRequestType requestType;
 		HttpRequestVarLayout varLayout;
 		QMap<QString, QString> vars;
 		QList<HttpRequestInputFileElement> files;
 
 		HttpRequestInput();
-		HttpRequestInput( QString v_httpUrl, QString v_httpMethod );
+		HttpRequestInput( QString v_httpUrl, QString v_httpMethod, QString v_targetPath = "" );
 		void initialize();
 		void addVar( QString key, QString value );
 		void addFile( QString localFilename, QString requestFilename, QString mimeType );

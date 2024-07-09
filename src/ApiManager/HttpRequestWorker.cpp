@@ -5,6 +5,7 @@
 #include <QBuffer>
 #include <QSaveFile>
 #include <QMessageBox>
+#include <QRandomGenerator>
 
 // Needed For Debug
 #include <QJsonDocument>
@@ -14,8 +15,9 @@
 #include "GlobalTypes.h"
 #include "Application/VsAuth.h"
 #include "Application/VsSettings.h"
-#include "ApiManager/HttpRequest.h"
-#include "ApiManager/JsonRequest.h"
+#include "ApiManager/Request/HttpRequest.h"
+#include "ApiManager/Request/JsonRequest.h"
+#include "ApiManager/Request/DownloadRequest.h"
 
 /*
  * This one did the trick!
@@ -26,7 +28,8 @@ HttpRequestWorker *HttpRequestWorker::_instance = 0;
 
 HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
 {
-	working = false;
+	_state	= WorkerState();
+	_state.working = false;
 	resetWorker();
 	commandStack = new QCache<int, QMap<QString, QVariant>>();
 
@@ -37,15 +40,14 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
     );
 
     connect(
-		this, SIGNAL( workerFinished( HttpRequestWorker* ) ),
-		this, SLOT( handleRequest() )
+		this, SIGNAL( workerFinished( WorkerState ) ),
+		this, SLOT( handleRequest( WorkerState ) )
 	);
 
     /* */
 	connect(
-		this, SIGNAL( workerFinished( HttpRequestWorker* ) ),
-		this, SLOT( sendNextRequest() ),
-		Qt::QueuedConnection
+		this, SIGNAL( workerFinished( WorkerState ) ),
+		this, SLOT( sendNextRequest( WorkerState ) )
 	);
 
 }
@@ -69,26 +71,32 @@ void HttpRequestWorker::execute( HttpRequestInput input, QString strRequestName,
 	resetWorker();
 
 	AbstractRequest *requestWrapper;
-	if ( input.requestType	== REQUEST_TYPE_JSON ) {
+	if ( input.requestType == REQUEST_TYPE_JSON ) {
 		requestWrapper	= new JsonRequest( &input );
-	} else {
+	} else if( input.requestType == REQUEST_TYPE_HTTP ) {
 		requestWrapper	= new HttpRequest( &input );
+	} else if( input.requestType == REQUEST_TYPE_DOWNLOAD ) {
+		requestWrapper	= new DownloadRequest( &input );
 	}
 
+	QString commandId			= generateCommandId();
+	requestWrapper->commandId 	= commandId;
 	requestWrapper->requestName = strRequestName;
 	requestWrapper->createRequest();
 
+	command->insert( "commandId", QVariant( commandId ) );
 	command->insert( "requestType", QVariant( input.requestType ) );
 	command->insert( "request", QVariant::fromValue( requestWrapper ) );
 	command->insert( "executed", QVariant( false ) );
 
-	if ( ! working ) {
+	if ( ! _state.working ) {
 		//qDebug() << "HttpRequestWorker Sending Request With Input and RequestName ...";
 		_sendRequest( requestWrapper, needAuthorization );
 	}
 
 	//debugCommand( *command );
 	commandStack->insert( commandStack->size(), command );
+	//debugCommandStack();
 }
 
 void HttpRequestWorker::execute( HttpRequestInput input, QString strRequestName, QMap<QString, QString> headers, bool needAuthorization )
@@ -97,12 +105,16 @@ void HttpRequestWorker::execute( HttpRequestInput input, QString strRequestName,
 	resetWorker();
 
 	AbstractRequest *requestWrapper;
-	if ( input.requestType	== REQUEST_TYPE_JSON ) {
+	if ( input.requestType == REQUEST_TYPE_JSON ) {
 		requestWrapper	= new JsonRequest( &input );
-	} else {
+	} else if( input.requestType == REQUEST_TYPE_HTTP ) {
 		requestWrapper	= new HttpRequest( &input );
+	} else if( input.requestType == REQUEST_TYPE_DOWNLOAD ) {
+		requestWrapper	= new DownloadRequest( &input );
 	}
 
+	QString commandId			= generateCommandId();
+	requestWrapper->commandId 	= commandId;
 	requestWrapper->requestName = strRequestName;
 	QNetworkRequest *request	= requestWrapper->createRequest();
 	if ( ! headers.empty() ) {
@@ -111,75 +123,80 @@ void HttpRequestWorker::execute( HttpRequestInput input, QString strRequestName,
 		}
 	}
 
+	command->insert( "commandId", QVariant( commandId ) );
 	command->insert( "requestType", QVariant( input.requestType ) );
 	command->insert( "request", QVariant::fromValue( requestWrapper ) );
 	command->insert( "executed", QVariant( false ) );
 
-	if ( ! working ) {
+	if ( ! _state.working ) {
 		//qDebug() << "HttpRequestWorker Sending Request With Input, RequestName and Headers ...";
 		_sendRequest( requestWrapper, needAuthorization );
 	}
 
 	//debugCommand( *command );
 	commandStack->insert( commandStack->size(), command, commandStack->size() );
+	//debugCommandStack();
 }
 
 void HttpRequestWorker::resetWorker()
 {
-	response 	= "";
-	errorType	= QNetworkReply::NoError;
-	errorStr 	= "";
+	_state.response 		= "";
+	_state.downloadedFile	= "";
+	_state.errorType		= QNetworkReply::NoError;
+	_state.errorStr 		= "";
 	//requestName	= "";
 }
 
 void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
 {
-	working = false;
+	_state.working = false;
 	QNetworkRequest request	= reply->request();
 
-	errorType = reply->error();
-    if ( errorType == QNetworkReply::NoError ) {
-        response = reply->readAll();
-        //debugNetworkReplyResponse( "HttpRequestWorker::onManagerFinished", response );
+	_state.errorType = reply->error();
+    if ( _state.errorType == QNetworkReply::NoError ) {
+        _state.response = reply->readAll();
+        debugNetworkReplyResponse( "HttpRequestWorker::onManagerFinished", _state.response );
     }
     else {
-        errorStr = reply->errorString();
+    	_state.errorStr = reply->errorString();
     }
 
     reply->deleteLater();
-    emit workerFinished( this );
+    emit workerFinished( _state );
 }
 
-void HttpRequestWorker::sendNextRequest()
+void HttpRequestWorker::sendNextRequest( WorkerState state )
 {
 	bool sendNext = false;
 	AbstractRequest *requestWrapper;
 	HttpRequestType requestType;
 
-	//debugCommandStack();
+	debugCommandStack();
 	for ( int i = 0; i < commandStack->size(); ++i ) {
 		requestType		= commandStack->object( i )->value( "requestType" ).value<HttpRequestType>();
 
 		if ( requestType == REQUEST_TYPE_JSON ) {
-			requestWrapper 	= commandStack->object( i )->value( "request" ).value<JsonRequest*>();
-		} else {
-			requestWrapper 	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();
+			requestWrapper	= commandStack->object( i )->value( "request" ).value<JsonRequest*>();
+		} else if( requestType == REQUEST_TYPE_HTTP ) {
+			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();;
+		} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
+			requestWrapper	= commandStack->object( i )->value( "request" ).value<DownloadRequest*>();
 		}
 
-		if ( sendNext && lastFinishedRequest != requestWrapper->requestName ) {
-			//qDebug() << "Next Request: " << requestWrapper->requestName;
+		if ( sendNext && state.lastFinishedRequest != requestWrapper->commandId ) {
+			qDebug() << "Next Request: " << requestWrapper->commandId;
 			_sendRequest( requestWrapper, true );
 			break;
 		}
 
-		//qDebug() << "Worker Request Name: " << requestName;
-		if ( requestWrapper && requestWrapper->requestName == requestName ) {
+		//qDebug() << "Worker Request Name: " << state.requestName;
+		if ( requestWrapper && requestWrapper->commandId == state.commandId ) {
 			commandStack->object( i )->insert( "executed", QVariant( true ) );
 			sendNext 			= true;
-			lastFinishedRequest = requestName;
+			state.lastFinishedRequest = state.commandId;
 
-			//qDebug() << "Current Request Executed: " << commandStack->object( i )->value( "executed" ).toBool();
-			//qDebug() << "Last Finished Request: " << lastFinishedRequest;
+			qDebug() << "Current Request Executed: " << commandStack->object( i )->value( "executed" ).toBool();
+			qDebug() << "Last Finished Request: " << state.lastFinishedRequest;
 		}
 	}
 }
@@ -213,9 +230,11 @@ void HttpRequestWorker::debugCommand( QMap<QString, QVariant> command )
 	HttpRequestType requestType	= command["requestType"].value<HttpRequestType>();
 
 	if ( requestType == REQUEST_TYPE_JSON ) {
-		requestWrapper 	= command["request"].value<JsonRequest*>();
-	} else {
-		requestWrapper 	= command["request"].value<HttpRequest*>();
+		requestWrapper	= command["request"].value<JsonRequest*>();
+	} else if( requestType == REQUEST_TYPE_HTTP ) {
+		requestWrapper	= command["request"].value<HttpRequest*>();
+	} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
+		requestWrapper	= command["request"].value<DownloadRequest*>();
 	}
 
 	qDebug() << "Command Stack Size: " << commandStack->size();
@@ -225,6 +244,7 @@ void HttpRequestWorker::debugCommand( QMap<QString, QVariant> command )
 	qDebug() << "Wrapper Request: " << requestWrapper;
 	qDebug() << "Wrapper Request Type: " << requestType;
 	qDebug() << "Wrapper Request Name: " << requestWrapper->requestName;
+	qDebug() << "Wrapper Command ID: " << requestWrapper->commandId;
 }
 
 void HttpRequestWorker::debugCommandStack()
@@ -270,10 +290,12 @@ void HttpRequestWorker::_authorizeRequest( QNetworkRequest *request )
 
 void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool needAuthorization )
 {
-	working 					= true;
-	requestName					= requestWrapper->requestName;
+	_state.working 					= true;
+	_state.commandId					= requestWrapper->commandId;
+	_state.requestName				= requestWrapper->requestName;
 	QNetworkRequest *request	= requestWrapper->request();
 	HttpRequestInput *input		= requestWrapper->requestInput();
+	_state.downloadingFile				= input->targetPath;
 	//debugRequest( request );
 	//return;
 
@@ -306,115 +328,134 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 	}
 }
 
-void HttpRequestWorker::handleRequest()
+void HttpRequestWorker::handleRequest( WorkerState state )
 {
-	if ( requestName == HttpRequests["LOGIN_REQUEST"] ) {
+	if ( state.requestName == HttpRequests["LOGIN_REQUEST"] ) {
 		//return;
-		handleLoginCheck();
-	} else if( requestName == HttpRequests["GET_MYTABLATURES_REQUEST"] ) {
+		handleLoginCheck( state );
+	} else if( state.requestName == HttpRequests["DOWNLOAD_TABLATURE_REQUEST"] ) {
 		//return;
-		handleMyTablaturesResult();
-	} else if( requestName == HttpRequests["GET_MYCATEGORIES_REQUEST"] ) {
+		handleMyTablatureDownload( state );
+	} else if( state.requestName == HttpRequests["GET_MYTABLATURES_REQUEST"] ) {
 		//return;
-		handleMyCategoriesResult();
-	} else if( requestName == HttpRequests["GET_MYTABLATURESUNCATEGORIZED_REQUEST"] ) {
+		handleMyTablaturesResult( state );
+	} else if( state.requestName == HttpRequests["GET_MYCATEGORIES_REQUEST"] ) {
 		//return;
-		handleMyTablaturesUncategorizedResult();
-	} else if( requestName == HttpRequests["CREATE_TABLATURE_CATEGORY_REQUEST"] || requestName == HttpRequests["UPDATE_TABLATURE_CATEGORY_REQUEST"] ) {
+		handleMyCategoriesResult( state );
+	} else if( state.requestName == HttpRequests["GET_MYTABLATURESUNCATEGORIZED_REQUEST"] ) {
 		//return;
-		handleUpdateCategoryResult();
-	} else if( requestName == HttpRequests["CREATE_TABLATURE_REQUEST"] || requestName == HttpRequests["UPDATE_TABLATURE_REQUEST"] ) {
+		handleMyTablaturesUncategorizedResult( state );
+	} else if( state.requestName == HttpRequests["CREATE_TABLATURE_CATEGORY_REQUEST"] || state.requestName == HttpRequests["UPDATE_TABLATURE_CATEGORY_REQUEST"] ) {
 		//return;
-		handleUploadTablatureResult();
+		handleUpdateCategoryResult( state );
+	} else if( state.requestName == HttpRequests["CREATE_TABLATURE_REQUEST"] || state.requestName == HttpRequests["UPDATE_TABLATURE_REQUEST"] ) {
+		//return;
+		handleUploadTablatureResult( state );
 	} else {
 		qDebug() << "UNDEFINED HTTP REQUEST !!!";
 	}
 }
 
-void HttpRequestWorker::handleLoginCheck()
+void HttpRequestWorker::handleLoginCheck( WorkerState state )
 {
     QString errorMsg;
 
-    //qDebug() << "Worker Error Type: " << errorType;
+    //qDebug() << "Worker Error Type: " << state.errorType;
 	//return;
 
-	if ( errorType == QNetworkReply::NoError ) {
-		emit loginCheckResponseReady( this );
+	if ( state.errorType == QNetworkReply::NoError ) {
+		emit loginCheckResponseReady( state );
 	} else {
-		errorMsg	= "Error: " + errorStr;
+		errorMsg	= "Error: " + state.errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }
 
-void HttpRequestWorker::handleMyCategoriesResult()
+void HttpRequestWorker::handleMyTablatureDownload( WorkerState state )
+{
+	QString errorMsg;
+
+	//qDebug() << "Worker Error Type: " << state.errorType;
+	//return;
+
+	if ( state.errorType == QNetworkReply::NoError ) {
+		state.downloadedFile	= state.downloadingFile;
+		emit myTablatureDownloadResponseReady( state );
+	} else {
+		errorMsg	= "Error: " + state.errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleMyCategoriesResult( WorkerState state )
 {
 	QString errorMsg;
 
 	//qDebug() << "NetworkReply NoErrorType: " << QNetworkReply::NoError;
-	//qDebug() << "Worker Error Type: " << errorType;
+	//qDebug() << "Worker Error Type: " << state.errorType;
 	//return;
 
-	if ( errorType == QNetworkReply::NoError ) {
-		emit myCategoriesResponseReady( this );
+	if ( state.errorType == QNetworkReply::NoError ) {
+		emit myCategoriesResponseReady( state );
 		//_getMyTablaturesUncategorized();	// Should To Be Here
 	} else {
-		errorMsg	= "Error: " + errorStr;
+		errorMsg	= "Error: " + state.errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }
 
-void HttpRequestWorker::handleMyTablaturesResult()
+void HttpRequestWorker::handleMyTablaturesResult( WorkerState state )
 {
 	QString errorMsg;
 
 	//qDebug() << "NetworkReply NoErrorType: " << QNetworkReply::NoError;
-	//qDebug() << "Worker Error Type: " << errorType;
+	//qDebug() << "Worker Error Type: " << state.errorType;
 	//return;
 
-	if ( errorType == QNetworkReply::NoError ) {
-		emit myTablaturesResponseReady( this );
+	if ( state.errorType == QNetworkReply::NoError ) {
+		emit myTablaturesResponseReady( state );
 	} else {
-		errorMsg	= "Error: " + errorStr;
+		errorMsg	= "Error: " + state.errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }
 
-void HttpRequestWorker::handleMyTablaturesUncategorizedResult()
+void HttpRequestWorker::handleMyTablaturesUncategorizedResult( WorkerState state )
 {
 	QString errorMsg;
 
 	//qDebug() << "NetworkReply NoErrorType: " << QNetworkReply::NoError;
-	//qDebug() << "Worker Error Type: " << errorType;
+	//qDebug() << "Worker Error Type: " << state.errorType;
 	//return;
 
-	if ( errorType == QNetworkReply::NoError ) {
-		emit myTablaturesResponseReady( this );
+	if ( state.errorType == QNetworkReply::NoError ) {
+		emit myTablaturesResponseReady( state );
 	} else {
-		errorMsg	= "Error: " + errorStr;
+		errorMsg	= "Error: " + state.errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }
 
-void HttpRequestWorker::handleUpdateCategoryResult()
+void HttpRequestWorker::handleUpdateCategoryResult( WorkerState state )
 {
 	QString errorMsg;
 
-	if ( errorType == QNetworkReply::NoError ) {
-		emit myCategoryUpdateResponseReady( this );
+	if ( state.errorType == QNetworkReply::NoError ) {
+		emit myCategoryUpdateResponseReady( state );
 	} else {
-		errorMsg	= "Error: " + errorStr;
+		errorMsg	= "Error: " + state.errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }
 
-void HttpRequestWorker::handleUploadTablatureResult()
+void HttpRequestWorker::handleUploadTablatureResult( WorkerState state )
 {
 	QString errorMsg;
 
-	if ( errorType == QNetworkReply::NoError ) {
-		emit myTablatureUploadResponseReady( this );
+	if ( state.errorType == QNetworkReply::NoError ) {
+		emit myTablatureUploadResponseReady( state );
 	} else {
-		errorMsg	= "Error: " + errorStr;
+		errorMsg	= "Error: " + state.errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
 	}
 }
@@ -422,4 +463,21 @@ void HttpRequestWorker::handleUploadTablatureResult()
 QNetworkAccessManager *HttpRequestWorker::manager()
 {
 	return _manager;
+}
+
+QString HttpRequestWorker::generateCommandId() const
+{
+   const QString possibleCharacters( "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" );
+   const int randomStringLength = 12; // assuming you want random strings of 12 characters
+
+   QString randomString;
+   for( int i=0; i < randomStringLength; ++i )
+   {
+	   quint32 index = QRandomGenerator::global()->generate() % possibleCharacters.length();;
+       //int index = qrand() % possibleCharacters.length();
+       QChar nextChar = possibleCharacters.at( index );
+       randomString.append( nextChar );
+   }
+
+   return randomString;
 }

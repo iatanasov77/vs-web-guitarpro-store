@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QMimeDatabase>
 
+#include "ApiManager/HttpRequestWorker.h"
 #include "VsApplication.h"
 #include "VsSettings.h"
 #include "WgpMyTablatures.h"
@@ -24,23 +25,23 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	//fixLocalMetaObjects();
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleMyCategoriesResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( WorkerState ) ),
+		this, SLOT( handleMyCategoriesResult( WorkerState ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( WorkerState ) ),
+		this, SLOT( handleMyTablaturesResult( WorkerState ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleUpdateCategoryResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( WorkerState ) ),
+		this, SLOT( handleUpdateCategoryResult( WorkerState ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleUploadTablatureResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( WorkerState ) ),
+		this, SLOT( handleUploadTablatureResult( WorkerState ) )
 	);
 
 	connect(
@@ -120,6 +121,7 @@ void WgpFileSystem::sync()
  */
 void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 {
+	//qDebug() << "'WgpFileSystem::_createCategories' Category Path: " << path;
 	QString categoryPath	= QString( "%1/%2" ).arg( path, jc["name"].toString() );
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
@@ -128,6 +130,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 
 	QJsonObject children	= jc.value( "children" ).toObject();
 	foreach( const QString& key, children.keys() ) {
+		qDebug() << "'WgpFileSystem::_createCategories' Has Child: " << key;
 		QJsonObject child	= children.value( key ).toObject();
 
 		_createCategories( child, categoryPath );
@@ -148,25 +151,25 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	}
 }
 
-void WgpFileSystem::handleUpdateCategoryResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleUpdateCategoryResult( WorkerState state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject result	= doc.object();
 	meta->appendToServerObjects( result );
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleUploadTablatureResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleUploadTablatureResult( WorkerState state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject result	= doc.object();
 	meta->appendToServerObjects( result );
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleMyCategoriesResult( WorkerState state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject results	= doc.object();
 	meta->refreshServerObjects( results );
 
@@ -181,9 +184,9 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 	//serverLoadFinished();
 }
 
-void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleMyTablaturesResult( WorkerState state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject results	= doc.object();
 	meta->refreshServerObjects( results );
 
@@ -204,7 +207,7 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 
 void WgpFileSystem::serverLoadFinished()
 {
-	qDebug() << "META DIFFERENCES \n=============================\n";
+	//qDebug() << "META DIFFERENCES \n=============================\n";
 
 	QStringList list	= meta->compareMeta();
 	for ( const auto& i : list  )
@@ -215,7 +218,7 @@ void WgpFileSystem::serverLoadFinished()
 
 void WgpFileSystem::metaDifferences()
 {
-	qDebug() << "META DIFFERENCES \n=============================\n";
+	//qDebug() << "META DIFFERENCES \n=============================\n";
 
 	QStringList list	= meta->compareMeta();
 	for ( const auto& i : list  )
@@ -253,7 +256,7 @@ void WgpFileSystem::fileModified( QString path )
 
 void WgpFileSystem::directoryModified( QString path )
 {
-	qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
+	//qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
 	QString categoryPath;
 	metaDifferences();
 	QFileInfo fi( path );
@@ -269,16 +272,6 @@ void WgpFileSystem::directoryModified( QString path )
 		categoryPath	= QString( "%1/%2" ).arg( path, newCategories[i] );
 		watcher->addPath( categoryPath );
 	}
-}
-
-QMap<QString, QString> WgpFileSystem::authHeaders()
-{
-	QMap<QString, QString> headers;
-	QVariant authToken	= VsSettings::instance()->value( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] ).toHash().value( "token" );
-
-	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
-
-	return headers;
 }
 
 WgpFileSystemModel *WgpFileSystem::model()
@@ -301,7 +294,7 @@ void WgpFileSystem::downloadTablature( int tabId, QString originalName, QString 
 						.arg( tabId )
 						.arg( originalName );
 
-	downloader->download( fileUrl, tablaturePath, authHeaders() );
+	downloader->download( fileUrl, tablaturePath );
 }
 
 void WgpFileSystem::fixLocalMetaObjects()

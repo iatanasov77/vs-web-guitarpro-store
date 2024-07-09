@@ -7,7 +7,7 @@
 
 enum FileSystemObject { OBJECT_TABLATURE, OBJECT_CATEGORY };
 enum HttpRequestVarLayout {NOT_SET, ADDRESS, URL_ENCODED, MULTIPART};
-enum HttpRequestType { REQUEST_TYPE_HTTP , REQUEST_TYPE_JSON };
+enum HttpRequestType { REQUEST_TYPE_HTTP , REQUEST_TYPE_JSON , REQUEST_TYPE_DOWNLOAD };
 Q_DECLARE_METATYPE( HttpRequestType )
 
 static QMap<QString, QString> SettingsGroups {
@@ -22,6 +22,8 @@ static QMap<QString, QString> SettingsKeys {
 
 static QMap<QString, QString> HttpRequests {
 	{"LOGIN_REQUEST", "Login Request"},
+	{"DOWNLOAD_TABLATURE_REQUEST", "Download Tablature Request"},
+
 	{"GET_MYTABLATURES_REQUEST", "Get MyTablatures Request"},
 	{"GET_MYCATEGORIES_REQUEST", "Get MyCategories Request"},
 	{"GET_MYTABLATURESUNCATEGORIZED_REQUEST", "Get MyTablaturesUncategorized Request"},

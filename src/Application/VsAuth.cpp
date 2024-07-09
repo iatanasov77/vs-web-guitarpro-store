@@ -6,6 +6,7 @@
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
 #include "Application/VsSettings.h"
+#include "ApiManager/HttpRequestWorker.h"
 
 VsAuth *VsAuth::_instance = 0;
 
@@ -14,8 +15,8 @@ VsAuth::VsAuth( QObject *parent ) : QObject( parent )
 	Q_UNUSED( parent );
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( loginCheckResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleAuthResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( loginCheckResponseReady( WorkerState ) ),
+		this, SLOT( handleAuthResult( WorkerState ) )
 	);
 }
 
@@ -74,9 +75,9 @@ QString VsAuth::userFullName()
 	return userFullName;
 }
 
-void VsAuth::handleAuthResult( HttpRequestWorker *worker )
+void VsAuth::handleAuthResult( WorkerState state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 
 	QVariant authPayload	= doc["payload"].toVariant();
 	//qDebug() << "API Token: " << authPayload.toHash().value( "token" ).toString();
@@ -87,5 +88,5 @@ void VsAuth::handleAuthResult( HttpRequestWorker *worker )
 	VsSettings::instance()->setValue( SettingsKeys["AUTH_PAYLOAD"], authPayload, SettingsGroups["authentication"] );
 	VsSettings::instance()->setValue( SettingsKeys["REFRESH_TOKEN"], refreshToken, SettingsGroups["authentication"] );
 
-	emit loginCheckFinished( worker );
+	emit loginCheckFinished( state );
 }
