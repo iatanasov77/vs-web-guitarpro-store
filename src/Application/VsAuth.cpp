@@ -15,8 +15,8 @@ VsAuth::VsAuth( QObject *parent ) : QObject( parent )
 	Q_UNUSED( parent );
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( loginCheckResponseReady( WorkerState ) ),
-		this, SLOT( handleAuthResult( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL( loginCheckResponseReady( CommandState ) ),
+		this, SLOT( handleAuthResult( CommandState ) )
 	);
 }
 
@@ -75,7 +75,7 @@ QString VsAuth::userFullName()
 	return userFullName;
 }
 
-void VsAuth::handleAuthResult( WorkerState state )
+void VsAuth::handleAuthResult( CommandState state )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 

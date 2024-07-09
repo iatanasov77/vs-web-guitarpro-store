@@ -39,13 +39,13 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 
 	/*  */
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( WorkerState ) ),
-		this, SLOT( handleMyCategoriesResult( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState ) ),
+		this, SLOT( handleMyCategoriesResult( CommandState ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( WorkerState ) ),
-		this, SLOT( handleMyTablaturesResult( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState ) ),
+		this, SLOT( handleMyTablaturesResult( CommandState ) )
 	);
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
@@ -210,7 +210,7 @@ void SystemTrayMenu::_syncFileSystem()
 	WgpFileSystem::instance()->sync();
 }
 
-void SystemTrayMenu::handleMyCategoriesResult( WorkerState state )
+void SystemTrayMenu::handleMyCategoriesResult( CommandState state )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject results	= doc.object();
@@ -233,7 +233,7 @@ void SystemTrayMenu::handleMyCategoriesResult( WorkerState state )
 	_setTopLevelItems( items );
 }
 
-void SystemTrayMenu::handleMyTablaturesResult( WorkerState state )
+void SystemTrayMenu::handleMyTablaturesResult( CommandState state )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject results	= doc.object();

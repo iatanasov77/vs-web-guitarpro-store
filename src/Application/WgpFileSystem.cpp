@@ -25,23 +25,23 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	//fixLocalMetaObjects();
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( WorkerState ) ),
-		this, SLOT( handleMyCategoriesResult( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState ) ),
+		this, SLOT( handleMyCategoriesResult( CommandState ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( WorkerState ) ),
-		this, SLOT( handleMyTablaturesResult( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState ) ),
+		this, SLOT( handleMyTablaturesResult( CommandState ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( WorkerState ) ),
-		this, SLOT( handleUpdateCategoryResult( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( CommandState ) ),
+		this, SLOT( handleUpdateCategoryResult( CommandState ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( WorkerState ) ),
-		this, SLOT( handleUploadTablatureResult( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( CommandState ) ),
+		this, SLOT( handleUploadTablatureResult( CommandState ) )
 	);
 
 	connect(
@@ -151,7 +151,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	}
 }
 
-void WgpFileSystem::handleUpdateCategoryResult( WorkerState state )
+void WgpFileSystem::handleUpdateCategoryResult( CommandState state )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject result	= doc.object();
@@ -159,7 +159,7 @@ void WgpFileSystem::handleUpdateCategoryResult( WorkerState state )
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleUploadTablatureResult( WorkerState state )
+void WgpFileSystem::handleUploadTablatureResult( CommandState state )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject result	= doc.object();
@@ -167,7 +167,7 @@ void WgpFileSystem::handleUploadTablatureResult( WorkerState state )
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleMyCategoriesResult( WorkerState state )
+void WgpFileSystem::handleMyCategoriesResult( CommandState state )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject results	= doc.object();
@@ -184,7 +184,7 @@ void WgpFileSystem::handleMyCategoriesResult( WorkerState state )
 	//serverLoadFinished();
 }
 
-void WgpFileSystem::handleMyTablaturesResult( WorkerState state )
+void WgpFileSystem::handleMyTablaturesResult( CommandState state )
 {
 	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
 	QJsonObject results	= doc.object();

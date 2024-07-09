@@ -5,10 +5,10 @@
 #include <QByteArray>
 #include <QNetworkReply>
 
-class WorkerState
+class CommandState
 {
 	public:
-		WorkerState();
+		CommandState();
 
 		QByteArray response;
 		QNetworkReply::NetworkError errorType;

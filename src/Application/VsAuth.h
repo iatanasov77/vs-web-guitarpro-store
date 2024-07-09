@@ -5,7 +5,7 @@
 #include <QString>
 #include <QMap>
 
-#include "ApiManager/WorkerState.h"
+#include "ApiManager/CommandState.h"
 
 enum AuthRequest{LOGIN_CHECK, UNDEFINED};
 static const QMap<AuthRequest, QString> RequestTypes {
@@ -31,10 +31,10 @@ class VsAuth : public QObject
         QString userFullName();
 
 	public slots:
-		void handleAuthResult( WorkerState state );
+		void handleAuthResult( CommandState state );
 
 	signals:
-		void loginCheckFinished( WorkerState );
+		void loginCheckFinished( CommandState );
 };
 
 #endif // VS_AUTH_H

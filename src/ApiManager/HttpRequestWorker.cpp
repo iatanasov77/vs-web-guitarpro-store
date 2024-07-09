@@ -28,7 +28,7 @@ HttpRequestWorker *HttpRequestWorker::_instance = 0;
 
 HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
 {
-	_state	= WorkerState();
+	_state	= CommandState();
 	_state.working = false;
 	resetWorker();
 	commandStack = new QCache<int, QMap<QString, QVariant>>();
@@ -40,14 +40,14 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
     );
 
     connect(
-		this, SIGNAL( workerFinished( WorkerState ) ),
-		this, SLOT( handleRequest( WorkerState ) )
+		this, SIGNAL( workerFinished( CommandState ) ),
+		this, SLOT( handleRequest( CommandState ) )
 	);
 
     /* */
 	connect(
-		this, SIGNAL( workerFinished( WorkerState ) ),
-		this, SLOT( sendNextRequest( WorkerState ) )
+		this, SIGNAL( workerFinished( CommandState ) ),
+		this, SLOT( sendNextRequest( CommandState ) )
 	);
 
 }
@@ -165,7 +165,7 @@ void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
     emit workerFinished( _state );
 }
 
-void HttpRequestWorker::sendNextRequest( WorkerState state )
+void HttpRequestWorker::sendNextRequest( CommandState state )
 {
 	bool sendNext = false;
 	AbstractRequest *requestWrapper;
@@ -328,7 +328,7 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 	}
 }
 
-void HttpRequestWorker::handleRequest( WorkerState state )
+void HttpRequestWorker::handleRequest( CommandState state )
 {
 	if ( state.requestName == HttpRequests["LOGIN_REQUEST"] ) {
 		//return;
@@ -356,7 +356,7 @@ void HttpRequestWorker::handleRequest( WorkerState state )
 	}
 }
 
-void HttpRequestWorker::handleLoginCheck( WorkerState state )
+void HttpRequestWorker::handleLoginCheck( CommandState state )
 {
     QString errorMsg;
 
@@ -371,7 +371,7 @@ void HttpRequestWorker::handleLoginCheck( WorkerState state )
 	}
 }
 
-void HttpRequestWorker::handleMyTablatureDownload( WorkerState state )
+void HttpRequestWorker::handleMyTablatureDownload( CommandState state )
 {
 	QString errorMsg;
 
@@ -387,7 +387,7 @@ void HttpRequestWorker::handleMyTablatureDownload( WorkerState state )
 	}
 }
 
-void HttpRequestWorker::handleMyCategoriesResult( WorkerState state )
+void HttpRequestWorker::handleMyCategoriesResult( CommandState state )
 {
 	QString errorMsg;
 
@@ -404,7 +404,7 @@ void HttpRequestWorker::handleMyCategoriesResult( WorkerState state )
 	}
 }
 
-void HttpRequestWorker::handleMyTablaturesResult( WorkerState state )
+void HttpRequestWorker::handleMyTablaturesResult( CommandState state )
 {
 	QString errorMsg;
 
@@ -420,7 +420,7 @@ void HttpRequestWorker::handleMyTablaturesResult( WorkerState state )
 	}
 }
 
-void HttpRequestWorker::handleMyTablaturesUncategorizedResult( WorkerState state )
+void HttpRequestWorker::handleMyTablaturesUncategorizedResult( CommandState state )
 {
 	QString errorMsg;
 
@@ -436,7 +436,7 @@ void HttpRequestWorker::handleMyTablaturesUncategorizedResult( WorkerState state
 	}
 }
 
-void HttpRequestWorker::handleUpdateCategoryResult( WorkerState state )
+void HttpRequestWorker::handleUpdateCategoryResult( CommandState state )
 {
 	QString errorMsg;
 
@@ -448,7 +448,7 @@ void HttpRequestWorker::handleUpdateCategoryResult( WorkerState state )
 	}
 }
 
-void HttpRequestWorker::handleUploadTablatureResult( WorkerState state )
+void HttpRequestWorker::handleUploadTablatureResult( CommandState state )
 {
 	QString errorMsg;
 

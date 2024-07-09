@@ -9,7 +9,7 @@
 #include <QNetworkReply>
 #include <QWidget>
 
-#include "WorkerState.h"
+#include "CommandState.h"
 #include "Request/AbstractRequest.h"
 #include "Request/HttpRequestInput.h"
 
@@ -29,19 +29,19 @@ class HttpRequestWorker : public QObject
 		void execute( HttpRequestInput input, QString strRequestName, QMap<QString, QString> headers, bool needAuthorization = false );
 
 	signals:
-		void workerFinished( WorkerState state );
-		void loginCheckResponseReady( WorkerState state );
-		void myTablatureDownloadResponseReady( WorkerState state );
-		void myCategoriesResponseReady( WorkerState state );
-		void myTablaturesResponseReady( WorkerState state );
-		void myCategoryUpdateResponseReady( WorkerState state );
-		void myTablatureUploadResponseReady( WorkerState state );
+		void workerFinished( CommandState state );
+		void loginCheckResponseReady( CommandState state );
+		void myTablatureDownloadResponseReady( CommandState state );
+		void myCategoriesResponseReady( CommandState state );
+		void myTablaturesResponseReady( CommandState state );
+		void myCategoryUpdateResponseReady( CommandState state );
+		void myTablatureUploadResponseReady( CommandState state );
 
 	private:
 		static HttpRequestWorker *_instance;
 
 		QNetworkAccessManager *_manager;
-		WorkerState _state;
+		CommandState _state;
 		QCache<int, QMap<QString, QVariant>> *commandStack;
 
 		HttpRequestWorker( QObject *parent = 0 );
@@ -58,18 +58,18 @@ class HttpRequestWorker : public QObject
 		void debugRequest( QNetworkRequest *request );
 		void debugAuthorizationSettings();
 
-		void handleLoginCheck( WorkerState state );
-		void handleMyTablatureDownload( WorkerState state );
-		void handleMyCategoriesResult( WorkerState state );
-		void handleMyTablaturesResult( WorkerState state );
-		void handleMyTablaturesUncategorizedResult( WorkerState state );
-		void handleUpdateCategoryResult( WorkerState state );
-		void handleUploadTablatureResult( WorkerState state );
+		void handleLoginCheck( CommandState state );
+		void handleMyTablatureDownload( CommandState state );
+		void handleMyCategoriesResult( CommandState state );
+		void handleMyTablaturesResult( CommandState state );
+		void handleMyTablaturesUncategorizedResult( CommandState state );
+		void handleUpdateCategoryResult( CommandState state );
+		void handleUploadTablatureResult( CommandState state );
 
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );
-		void handleRequest( WorkerState state );
-		void sendNextRequest( WorkerState state );
+		void handleRequest( CommandState state );
+		void sendNextRequest( CommandState state );
 
 };
 

@@ -39,8 +39,8 @@ class SystemTrayMenu : public QWidget
 
 	private slots:
 		void logout();
-		void handleMyCategoriesResult( WorkerState state );
-		void handleMyTablaturesResult( WorkerState state );
+		void handleMyCategoriesResult( CommandState state );
+		void handleMyTablaturesResult( CommandState state );
 		void openWebGuitarProFolder();
 };
 

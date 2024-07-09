@@ -6,14 +6,14 @@
 HttpFileDownloader::HttpFileDownloader( QObject *parent ) : QObject( parent )
 {
 	connect(
-		HttpRequestWorker::instance(), SIGNAL ( myTablatureDownloadResponseReady( WorkerState ) ),
-		this, SLOT ( fileDownloaded( WorkerState ) )
+		HttpRequestWorker::instance(), SIGNAL ( myTablatureDownloadResponseReady( CommandState ) ),
+		this, SLOT ( fileDownloaded( CommandState ) )
 	);
 }
 
 HttpFileDownloader::~HttpFileDownloader() { }
 
-void HttpFileDownloader::fileDownloaded( WorkerState state )
+void HttpFileDownloader::fileDownloaded( CommandState state )
 {
 	QString fileTarget	= state.downloadedFile;
 	QByteArray fileData	= state.response;

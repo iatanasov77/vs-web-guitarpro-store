@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include "HttpRequestWorker.h"
-#include "WorkerState.h"
+#include "CommandState.h"
 
 class HttpFileDownloader : public QObject
 {
@@ -19,7 +19,7 @@ class HttpFileDownloader : public QObject
 		void downloaded( QString targetPath );
 
 	private slots:
-		void fileDownloaded( WorkerState state );
+		void fileDownloaded( CommandState state );
 
 	private:
 		void writeFile( QString filePath, QByteArray data );
