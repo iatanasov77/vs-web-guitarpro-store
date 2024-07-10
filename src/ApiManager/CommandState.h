@@ -1,14 +1,17 @@
 #ifndef WORKERSTATE_H
 #define WORKERSTATE_H
 
+#include <QObject>
 #include <QString>
 #include <QByteArray>
 #include <QNetworkReply>
 
-class CommandState
+class CommandState : public QObject
 {
+	Q_OBJECT
+
 	public:
-		CommandState();
+		CommandState( QObject *parent = 0 );
 
 		QByteArray response;
 		QNetworkReply::NetworkError errorType;
@@ -18,7 +21,6 @@ class CommandState
 		QString lastFinishedRequest;
 		QString downloadingFile;
 		QString downloadedFile;
-		bool working;
 };
 
 #endif // WORKERSTATE_H

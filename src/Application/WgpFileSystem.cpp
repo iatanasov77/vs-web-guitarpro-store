@@ -11,6 +11,7 @@
 #include "VsApplication.h"
 #include "VsSettings.h"
 #include "WgpMyTablatures.h"
+#include "ApiManager/HttpFileDownloader.h"
 
 WgpFileSystem *WgpFileSystem::_instance = nullptr;
 
@@ -19,33 +20,31 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	Q_UNUSED( parent );
 
 	allowedMimeTypes = QStringList{ "application/gpx+xml", "application/octet-stream" };
-	downloader	= new HttpFileDownloader();
-
 	createModel();
 	//fixLocalMetaObjects();
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState ) ),
-		this, SLOT( handleMyCategoriesResult( CommandState ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyCategoriesResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState ) ),
-		this, SLOT( handleMyTablaturesResult( CommandState ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyTablaturesResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( CommandState ) ),
-		this, SLOT( handleUpdateCategoryResult( CommandState ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( CommandState* ) ),
+		this, SLOT( handleUpdateCategoryResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( CommandState ) ),
-		this, SLOT( handleUploadTablatureResult( CommandState ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( CommandState* ) ),
+		this, SLOT( handleUploadTablatureResult( CommandState* ) )
 	);
 
 	connect(
-		downloader, SIGNAL( downloaded( QString ) ),
+		HttpFileDownloader::instance(), SIGNAL( downloaded( QString ) ),
 		this, SLOT( handleDownloadedTablature( QString ) )
 	);
 	/*
@@ -151,25 +150,25 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	}
 }
 
-void WgpFileSystem::handleUpdateCategoryResult( CommandState state )
+void WgpFileSystem::handleUpdateCategoryResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject result	= doc.object();
 	meta->appendToServerObjects( result );
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleUploadTablatureResult( CommandState state )
+void WgpFileSystem::handleUploadTablatureResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject result	= doc.object();
 	meta->appendToServerObjects( result );
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleMyCategoriesResult( CommandState state )
+void WgpFileSystem::handleMyCategoriesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	meta->refreshServerObjects( results );
 
@@ -184,9 +183,9 @@ void WgpFileSystem::handleMyCategoriesResult( CommandState state )
 	//serverLoadFinished();
 }
 
-void WgpFileSystem::handleMyTablaturesResult( CommandState state )
+void WgpFileSystem::handleMyTablaturesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	meta->refreshServerObjects( results );
 
@@ -294,7 +293,7 @@ void WgpFileSystem::downloadTablature( int tabId, QString originalName, QString 
 						.arg( tabId )
 						.arg( originalName );
 
-	downloader->download( fileUrl, tablaturePath );
+	HttpFileDownloader::instance()->download( fileUrl, tablaturePath );
 }
 
 void WgpFileSystem::fixLocalMetaObjects()

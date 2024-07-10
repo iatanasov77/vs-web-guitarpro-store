@@ -29,8 +29,8 @@ UserLoginDialog::UserLoginDialog( QWidget *parent ) :
     connect( cancelButton, SIGNAL( clicked() ), this, SLOT( reject() ) );
 
     connect(
-		VsAuth::instance(), SIGNAL( loginCheckFinished( CommandState ) ),
-		this, SLOT( handleAuthResult( CommandState ) )
+		VsAuth::instance(), SIGNAL( loginCheckFinished( CommandState* ) ),
+		this, SLOT( handleAuthResult( CommandState* ) )
 	);
 }
 
@@ -54,7 +54,7 @@ void UserLoginDialog::save()
 	}
 }
 
-void UserLoginDialog::handleAuthResult( CommandState state )
+void UserLoginDialog::handleAuthResult( CommandState *state )
 {
 	qDebug() << "'UserLoginDialog::handleAuthResult' CALLED";
 	waitingSpinner->stop();
@@ -63,7 +63,7 @@ void UserLoginDialog::handleAuthResult( CommandState state )
 	//qDebug() << "Worker Error Type: " << worker->errorType;
 	//return;
 
-    if ( state.errorType == QNetworkReply::NoError ) {
+    if ( state->errorType == QNetworkReply::NoError ) {
     	accept();
     }
 }

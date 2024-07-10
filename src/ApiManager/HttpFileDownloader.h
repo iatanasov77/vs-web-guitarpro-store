@@ -10,18 +10,22 @@ class HttpFileDownloader : public QObject
 	Q_OBJECT
 
 	public:
-		explicit HttpFileDownloader( QObject *parent = nullptr );
-		virtual ~HttpFileDownloader();
-
+		static HttpFileDownloader* instance();
 		void download( QString url, QString targetPath );
 
 	signals:
 		void downloaded( QString targetPath );
 
 	private slots:
-		void fileDownloaded( CommandState state );
+		void fileDownloaded( CommandState *state );
 
 	private:
+		static HttpFileDownloader *_instance;
+		QMap<QString, HttpRequestInput*> downloadFiles;
+
+		static HttpFileDownloader* createInstance();
+		HttpFileDownloader( QObject *parent = nullptr );
+
 		void writeFile( QString filePath, QByteArray data );
 };
 

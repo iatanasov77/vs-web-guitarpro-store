@@ -25,7 +25,7 @@ class UserLoginDialog : public QDialog
 
 	public slots:
 		void save();
-		void handleAuthResult( CommandState state );
+		void handleAuthResult( CommandState *state );
 };
 
 #endif // DIALOG_USER_LOGIN_H

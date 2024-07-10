@@ -6,7 +6,6 @@
 #include <QJsonObject>
 
 #include "ApiManager/CommandState.h"
-#include "ApiManager/HttpFileDownloader.h"
 #include "Model/WgpFileSystemModel.h"
 #include "Model/WgpFileIconProvider.h"
 #include "WgpFileSystemMeta.h"
@@ -18,7 +17,6 @@ class WgpFileSystem : public QObject
 	private:
 		static WgpFileSystem *_instance;
 		QStringList allowedMimeTypes;
-		HttpFileDownloader *downloader;
 
 		WgpFileSystemModel *_model;
 		WgpFileIconProvider *iconProvider;
@@ -44,10 +42,10 @@ class WgpFileSystem : public QObject
         void downloadTablature( int tabId, QString originalName, QString tablaturePath );
 
     public slots:
-        void handleMyCategoriesResult( CommandState state );
-        void handleMyTablaturesResult( CommandState state );
-        void handleUpdateCategoryResult( CommandState state );
-        void handleUploadTablatureResult( CommandState state );
+        void handleMyCategoriesResult( CommandState *state );
+        void handleMyTablaturesResult( CommandState *state );
+        void handleUpdateCategoryResult( CommandState *state );
+        void handleUploadTablatureResult( CommandState *state );
         void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
         void fileRenamed( QString path, QString oldName, QString newName );

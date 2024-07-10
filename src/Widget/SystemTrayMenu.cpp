@@ -19,6 +19,7 @@
 #include "Application/VsSettings.h"
 #include "Application/WgpMyTablatures.h"
 #include "Application/WgpFileSystem.h"
+#include "ApiManager/HttpRequestWorker.h"
 
 SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	QWidget( parent ),
@@ -39,13 +40,13 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 
 	/*  */
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState ) ),
-		this, SLOT( handleMyCategoriesResult( CommandState ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyCategoriesResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState ) ),
-		this, SLOT( handleMyTablaturesResult( CommandState ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyTablaturesResult( CommandState* ) )
 	);
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
@@ -210,9 +211,9 @@ void SystemTrayMenu::_syncFileSystem()
 	WgpFileSystem::instance()->sync();
 }
 
-void SystemTrayMenu::handleMyCategoriesResult( CommandState state )
+void SystemTrayMenu::handleMyCategoriesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	//qDebug() << "'SystemTrayMenu::handleMyCategoriesResult' Result Size: " << results.size();
 
@@ -233,9 +234,9 @@ void SystemTrayMenu::handleMyCategoriesResult( CommandState state )
 	_setTopLevelItems( items );
 }
 
-void SystemTrayMenu::handleMyTablaturesResult( CommandState state )
+void SystemTrayMenu::handleMyTablaturesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( state.response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	//qDebug() << "'SystemTrayMenu::handleMyTablaturesResult' Result Size: " << results.size();
 

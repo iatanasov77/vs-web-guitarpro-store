@@ -31,10 +31,10 @@ class VsAuth : public QObject
         QString userFullName();
 
 	public slots:
-		void handleAuthResult( CommandState state );
+		void handleAuthResult( CommandState *state );
 
 	signals:
-		void loginCheckFinished( CommandState );
+		void loginCheckFinished( CommandState* );
 };
 
 #endif // VS_AUTH_H
