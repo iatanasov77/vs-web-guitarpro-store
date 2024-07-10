@@ -24,6 +24,11 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	//fixLocalMetaObjects();
 
 	connect(
+		HttpRequestWorker::instance(), SIGNAL( sharedToMeTablaturesResponseReady( CommandState* ) ),
+		this, SLOT( handleSharedToMeTablaturesResult( CommandState* ) )
+	);
+
+	connect(
 		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState* ) ),
 		this, SLOT( handleMyCategoriesResult( CommandState* ) )
 	);
@@ -47,6 +52,7 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 		HttpFileDownloader::instance(), SIGNAL( downloaded( QString ) ),
 		this, SLOT( handleDownloadedTablature( QString ) )
 	);
+
 	/*
 	connect(
 		WgpMyTablatures::instance(), SIGNAL( serverLoadFinished() ),
@@ -209,6 +215,49 @@ void WgpFileSystem::handleMyTablaturesResult( CommandState *state )
 
 	//serverLoadFinished();
 	removeDeletedFiles();
+}
+
+void WgpFileSystem::handleSharedToMeTablaturesResult( CommandState *state )
+{
+	// Create Root Path
+	QString rootPath	= QString( "%1/%2" ).arg( _model->rootPath(), "Shared To Me Tablatures" );
+	meta->appendToFileSystemFiles( rootPath );
+
+	if ( ! QDir( rootPath ).exists() ) {
+		//qDebug() << "PATH NOT EXISTS: " << rootPath;
+		createCategory( "Shared To Me Tablatures", _model->rootPath() );
+	}
+
+	// Handle SharedToMeTablatures Result
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
+	QJsonObject results	= doc.object();
+
+	foreach( const QString& key, results.keys() ) {
+		QJsonObject jc	= results.value( key ).toObject();
+
+		QString categoryPath	= QString( "%1/%2" ).arg( rootPath, jc["name"].toString() );
+		meta->appendToFileSystemFiles( categoryPath );
+
+		if ( ! QDir( categoryPath ).exists() ) {
+			//qDebug() << "PATH NOT EXISTS: " << categoryPath;
+			createCategory( jc["name"].toString(), rootPath );
+		}
+
+		QJsonObject tabs	= jc.value( "tablatures" ).toObject();
+		foreach( const QString& key, tabs.keys() ) {
+			QJsonObject jt	= tabs.value( key ).toObject();
+
+			// Tablature Original File Name
+			QJsonObject tablatureFile	= jt.value( "tablatureFile" ).toObject();
+			QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
+			meta->appendToFileSystemFiles( tablaturePath );
+
+			if ( ! QFile::exists( tablaturePath ) ) {
+				//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
+				downloadTablature( jt["id"].toInt(), tablatureFile["originalName"].toString(), tablaturePath );
+			}
+		}
+	}
 }
 
 void WgpFileSystem::serverLoadFinished()

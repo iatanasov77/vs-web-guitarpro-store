@@ -349,6 +349,9 @@ void HttpRequestWorker::handleRequest( CommandState *state )
 	} else if( state->requestName == HttpRequests["CREATE_TABLATURE_REQUEST"] || state->requestName == HttpRequests["UPDATE_TABLATURE_REQUEST"] ) {
 		//return;
 		handleUploadTablatureResult( state );
+	} else if( state->requestName == HttpRequests["GET_SHAREDTOMETABLATURES_REQUEST"] ) {
+		//return;
+		handleSharedToMeTablaturesResult( state );
 	} else {
 		qDebug() << "UNDEFINED HTTP REQUEST !!!";
 	}
@@ -452,6 +455,18 @@ void HttpRequestWorker::handleUploadTablatureResult( CommandState *state )
 
 	if ( state->errorType == QNetworkReply::NoError ) {
 		emit myTablatureUploadResponseReady( state );
+	} else {
+		errorMsg	= "Error: " + state->errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleSharedToMeTablaturesResult( CommandState *state )
+{
+	QString errorMsg;
+
+	if ( state->errorType == QNetworkReply::NoError ) {
+		emit sharedToMeTablaturesResponseReady( state );
 	} else {
 		errorMsg	= "Error: " + state->errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );

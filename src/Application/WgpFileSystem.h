@@ -43,6 +43,7 @@ class WgpFileSystem : public QObject
         void downloadTablature( int tabId, QString originalName, QString tablaturePath );
 
     public slots:
+		void handleSharedToMeTablaturesResult( CommandState *state );
         void handleMyCategoriesResult( CommandState *state );
         void handleMyTablaturesResult( CommandState *state );
         void handleUpdateCategoryResult( CommandState *state );

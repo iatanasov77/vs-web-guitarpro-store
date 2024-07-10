@@ -18,6 +18,7 @@
 #include "Application/VsAuth.h"
 #include "Application/VsSettings.h"
 #include "Application/WgpMyTablatures.h"
+#include "Application/WgpSharedToMeTablatures.h"
 #include "Application/WgpFileSystem.h"
 #include "ApiManager/HttpRequestWorker.h"
 
@@ -38,7 +39,6 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 
 	ui->treeWidget->setColumnCount( 3 );
 
-	/*  */
 	connect(
 		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState* ) ),
 		this, SLOT( handleMyCategoriesResult( CommandState* ) )
@@ -47,6 +47,11 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	connect(
 		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState* ) ),
 		this, SLOT( handleMyTablaturesResult( CommandState* ) )
+	);
+
+	connect(
+		HttpRequestWorker::instance(), SIGNAL( sharedToMeTablaturesResponseReady( CommandState* ) ),
+		this, SLOT( handleSharedToMeTablaturesResult( CommandState* ) )
 	);
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
@@ -147,6 +152,7 @@ void SystemTrayMenu::_displayMyTablatures()
 
 	//return;
 	WgpMyTablatures::instance()->getMyTablatures();
+	WgpSharedToMeTablatures::instance()->getSharedToMeTablatures();
 }
 
 void SystemTrayMenu::_setTopLevelItems( QList<QTreeWidgetItem *> items )
@@ -269,6 +275,65 @@ void SystemTrayMenu::handleMyTablaturesResult( CommandState *state )
 	}
 
 	_setTopLevelItems( items );
+}
+
+void SystemTrayMenu::handleSharedToMeTablaturesResult( CommandState *state )
+{
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
+	QJsonObject results	= doc.object();
+	//qDebug() << "'SystemTrayMenu::handleSharedToMeTablaturesResult' Result Size: " << results.size();
+
+	QList<QTreeWidgetItem *> items;
+	QList<QTreeWidgetItem *> children;
+	QTreeWidgetItem *treeItem;
+
+	// Create Root Item
+	QTreeWidgetItem *rootItem = new QTreeWidgetItem( static_cast<QTreeWidget *>(nullptr) );
+	rootItem->setText( 0, "Shared To Me Tablatures" );
+	items.append( rootItem );
+
+	foreach( const QString& key, results.keys() ) {
+		QJsonObject jc	= results.value( key ).toObject();
+
+		treeItem = new QTreeWidgetItem( static_cast<QTreeWidget *>(nullptr) );
+
+		// Tablature Name
+		treeItem->setText( 0, jc["name"].toString() );
+		children.append( treeItem );
+
+		_createSharedToMeTablaturesItems( jc, treeItem );
+	}
+	rootItem->addChildren( children );
+
+	_setTopLevelItems( items );
+}
+
+void SystemTrayMenu::_createSharedToMeTablaturesItems( QJsonObject jc, QTreeWidgetItem *parentItem )
+{
+	QJsonObject tabs	= jc.value( "tablatures" ).toObject();
+	//qDebug() << "'SystemTrayMenu::_createSharedToMeTablaturesItems' Tablatures Size: " << tabs.size();
+
+	foreach( const QString& key, tabs.keys() ) {
+		QJsonObject jt	= tabs.value( key ).toObject();
+		QTreeWidgetItem *childItem	= new QTreeWidgetItem( parentItem );
+
+		// Tablature Name
+		childItem->setText( 0, jt["artist"].toString() + " - " + jt["song"].toString() );
+
+		// Tablature Original File Name
+		QJsonObject tablatureFile	= jt["tablatureFile"].toObject();
+		childItem->setText( 1, tablatureFile["originalName"].toString() );
+
+		// Tablature Is Public
+		QPixmap oPixmap( 32,32 );
+		if ( jt["enabled"] == true ) {
+			oPixmap.load ( ":/Resources/icons/Symbol_OK.svg" );
+		} else {
+			oPixmap.load ( ":/Resources/icons/Symbol_NO.svg" );
+		}
+		QIcon oIcon( oPixmap );
+		childItem->setIcon( 2, oIcon );
+	}
 }
 
 void SystemTrayMenu::openWebGuitarProFolder()

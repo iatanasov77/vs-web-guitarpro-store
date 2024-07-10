@@ -36,11 +36,13 @@ class SystemTrayMenu : public QWidget
 		void _displayMyTablatures();
 		void _setTopLevelItems( QList<QTreeWidgetItem *> items );
 		QTreeWidgetItem *_createTreeWidgetItems( QJsonObject jc, QTreeWidgetItem *parentItem = nullptr );
+		void _createSharedToMeTablaturesItems( QJsonObject jc, QTreeWidgetItem *parentItem );
 
 	private slots:
 		void logout();
 		void handleMyCategoriesResult( CommandState *state );
 		void handleMyTablaturesResult( CommandState *state );
+		void handleSharedToMeTablaturesResult( CommandState *state );
 		void openWebGuitarProFolder();
 };
 
