@@ -2,7 +2,7 @@
     <shortName>WebGuitarProStore</shortName>
     <fullName>WebGuitarProStore</fullName>
     <version>0.6.0</version>
-    <licenseFile>C:/Projects/VsMyDesktopProjects/LICENSE</licenseFile>
+    <licenseFile>C:/Projects/VS_MyDesktopProjects/LICENSE</licenseFile>
     <componentList>
         <component>
             <name>default</name>
@@ -34,49 +34,49 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/WebGuitarProStore.exe</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/WebGuitarProStore.exe</origin>
                         </distributionFile>
                         <distributionDirectory>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/plugins/iconengines</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/plugins/iconengines</origin>
                         </distributionDirectory>
                         <distributionDirectory>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/plugins/imageformats</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/plugins/imageformats</origin>
                         </distributionDirectory>
                         <distributionDirectory>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/plugins/platforms</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/plugins/platforms</origin>
                         </distributionDirectory>
                         <distributionDirectory>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/plugins/styles</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/plugins/styles</origin>
                         </distributionDirectory>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/Qt5Core.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/Qt5Core.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/Qt5Network.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/Qt5Network.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/Qt5Gui.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/Qt5Gui.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/Qt5Widgets.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/Qt5Widgets.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/Qt5Xml.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/Qt5Xml.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/Qt5Svg.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/Qt5Svg.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/libstdc++-6.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/libstdc++-6.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/libgcc_s_seh-1.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/libgcc_s_seh-1.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/libwinpthread-1.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/libwinpthread-1.dll</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>C:/Projects/VsMyDesktopProjects/Temp/Redistribute_Windows/qtwaitingspinner.dll</origin>
+                            <origin>C:/Projects/VS_MyDesktopProjects/Temp/Redistribute_Windows/qtwaitingspinner.dll</origin>
                         </distributionFile>
                     </distributionFileList>
                     <shortcutList>
