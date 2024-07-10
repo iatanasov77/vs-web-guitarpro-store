@@ -41,7 +41,6 @@ HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
 		this, SLOT( handleRequest( CommandState* ) )
 	);
 
-    /* */
 	connect(
 		this, SIGNAL( workerFinished( CommandState* ) ),
 		this, SLOT( sendNextRequest( CommandState* ) )
@@ -161,7 +160,7 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 	AbstractRequest *requestWrapper;
 	HttpRequestType requestType;
 
-	debugCommandStack();
+	//debugCommandStack();
 	for ( int i = 0; i < commandStack->size(); ++i ) {
 		requestType		= commandStack->object( i )->value( "requestType" ).value<HttpRequestType>();
 
@@ -173,7 +172,7 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 			requestWrapper	= commandStack->object( i )->value( "request" ).value<DownloadRequest*>();
 		}
 
-		if ( sendNext && state->lastFinishedRequest != requestWrapper->commandId ) {
+		if ( sendNext && lastFinishedRequest != requestWrapper->commandId ) {
 			qDebug() << "Next Request: " << requestWrapper->commandId;
 			_sendRequest( requestWrapper, true );
 			break;
@@ -183,10 +182,10 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 		if ( requestWrapper && requestWrapper->commandId == state->commandId ) {
 			commandStack->object( i )->insert( "executed", QVariant( true ) );
 			sendNext 			= true;
-			state->lastFinishedRequest = state->commandId;
+			lastFinishedRequest = state->commandId;
 
-			qDebug() << "Current Request Executed: " << commandStack->object( i )->value( "executed" ).toBool();
-			qDebug() << "Last Finished Request: " << state->lastFinishedRequest;
+			//qDebug() << "Current Request Executed: " << commandStack->object( i )->value( "executed" ).toBool();
+			//qDebug() << "Last Finished Request: " << lastFinishedRequest;
 		}
 	}
 }
@@ -285,9 +284,9 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 	HttpRequestInput *input		= requestWrapper->requestInput();
 
 	currentCommandId											= requestWrapper->commandId;
+	downloadingFile												= input->targetPath;
 	commandState[requestWrapper->commandId]->commandId			= currentCommandId;
 	commandState[requestWrapper->commandId]->requestName		= requestWrapper->requestName;
-	commandState[requestWrapper->commandId]->downloadingFile	= input->targetPath;
 
 	if ( needAuthorization ) {
 		_authorizeRequest( request );
@@ -370,11 +369,11 @@ void HttpRequestWorker::handleMyTablatureDownload( CommandState *state )
 {
 	QString errorMsg;
 
-	qDebug() << "Worker Error Type: " << state->errorType;
-	return;
+	//qDebug() << "Worker Error Type: " << state->errorType;
+	//return;
 
 	if ( state->errorType == QNetworkReply::NoError ) {
-		state->downloadedFile	= state->downloadingFile;
+		state->downloadedFile	= downloadingFile;
 		emit myTablatureDownloadResponseReady( state );
 	} else {
 		errorMsg	= "Error: " + state->errorStr;

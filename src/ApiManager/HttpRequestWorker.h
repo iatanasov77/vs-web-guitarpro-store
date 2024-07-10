@@ -45,6 +45,8 @@ class HttpRequestWorker : public QObject
 		QCache<int, QMap<QString, QVariant>> *commandStack;
 		bool working;
 		QString currentCommandId;
+		QString lastFinishedRequest;
+		QString downloadingFile;
 
 		HttpRequestWorker( QObject *parent = 0 );
 		static HttpRequestWorker* createInstance();

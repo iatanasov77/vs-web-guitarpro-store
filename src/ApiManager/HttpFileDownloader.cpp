@@ -12,6 +12,7 @@ HttpFileDownloader *HttpFileDownloader::_instance = 0;
 
 HttpFileDownloader::HttpFileDownloader( QObject *parent ) : QObject( parent )
 {
+	//qDebug() << "FILE DOWNLOADER INITIALIZED !!!";
 	connect(
 		HttpRequestWorker::instance(), SIGNAL ( myTablatureDownloadResponseReady( CommandState* ) ),
 		this, SLOT ( fileDownloaded( CommandState* ) )
