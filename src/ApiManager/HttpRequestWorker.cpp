@@ -170,6 +170,8 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();;
 		} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
 			requestWrapper	= commandStack->object( i )->value( "request" ).value<DownloadRequest*>();
+		} else {
+			return;
 		}
 
 		if ( sendNext && lastFinishedRequest != requestWrapper->commandId ) {
@@ -224,6 +226,8 @@ void HttpRequestWorker::debugCommand( QMap<QString, QVariant> command )
 		requestWrapper	= command["request"].value<HttpRequest*>();
 	} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
 		requestWrapper	= command["request"].value<DownloadRequest*>();
+	} else {
+		return;
 	}
 
 	qDebug() << "Command Stack Size: " << commandStack->size();
