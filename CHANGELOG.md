@@ -1,3 +1,15 @@
+0.6.0	|	Release date: **10.07.2024**
+============================================
+* New Features and Improvements:
+  - Update VsApplication Component.
+  - Move Some Methods to WgpFileSystem From Meta Class.
+  - Create a WorkerState Class.
+  - Rename WorkerState Class to CommandState
+  - Make Worker execute methods to got input as pointer.
+  - Worker Download Tablatures is DONE.
+  - Remove Deleted API Files from FileSystem.
+
+
 0.5.1	|	Release date: **07.07.2024**
 ============================================
 * New Features and Improvements:
