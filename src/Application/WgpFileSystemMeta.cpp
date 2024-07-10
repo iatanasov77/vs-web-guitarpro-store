@@ -157,10 +157,10 @@ void WgpFileSystemMeta::saveServerObjects( QJsonDocument document )
 
 void WgpFileSystemMeta::appendToServerObjects( QJsonObject jc )
 {
-	metaLocalJson.append( jc );
+	metaServerJson.append( jc );
 
-	QJsonDocument document 	= loadLocalObjects();
-	document.setArray( metaLocalJson );
+	QJsonDocument document 	= loadServerObjects();
+	document.setArray( metaServerJson );
 	saveLocalObjects( document );
 }
 
@@ -189,6 +189,38 @@ void WgpFileSystemMeta::clearMeta()
 		metaLocalJson.pop_back();
 	}
 	*/
+
+	while( metaFileSystemFilesJson.count() ) {
+		metaFileSystemFilesJson.pop_back();
+	}
+}
+
+QJsonDocument WgpFileSystemMeta::loadFileSystemFiles()
+{
+	QString fileName	= _metaPath + "/file_system_files.json";
+
+    QFile jsonFile( fileName );
+    jsonFile.open( QFile::ReadOnly );
+
+    return QJsonDocument().fromJson( jsonFile.readAll() );
+}
+
+void WgpFileSystemMeta::saveFileSystemFiles( QJsonDocument document )
+{
+	QString fileName	= _metaPath + "/file_system_files.json";
+
+    QFile jsonFile( fileName );
+    jsonFile.open( QFile::WriteOnly );
+    jsonFile.write( document.toJson() );
+}
+
+void WgpFileSystemMeta::appendToFileSystemFiles( QString path )
+{
+	metaFileSystemFilesJson.insert( metaFileSystemFilesJson.size(), QJsonValue( path ) );
+
+	QJsonDocument document 	= loadFileSystemFiles();
+	document.setArray( metaFileSystemFilesJson );
+	saveFileSystemFiles( document );
 }
 
 QStringList WgpFileSystemMeta::compareMeta()

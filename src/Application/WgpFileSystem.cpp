@@ -122,6 +122,8 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 {
 	//qDebug() << "'WgpFileSystem::_createCategories' Category Path: " << path;
 	QString categoryPath	= QString( "%1/%2" ).arg( path, jc["name"].toString() );
+	meta->appendToFileSystemFiles( categoryPath );
+
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
 		createCategory( jc["name"].toString(), path );
@@ -142,6 +144,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 		// Tablature Original File Name
 		QJsonObject tablatureFile	= jt.value( "tablatureFile" ).toObject();
 		QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
+		meta->appendToFileSystemFiles( tablaturePath );
 
 		if ( ! QFile::exists( tablaturePath ) ) {
 			//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
@@ -180,7 +183,9 @@ void WgpFileSystem::handleMyCategoriesResult( CommandState *state )
 
 		_createCategories( jc, _model->rootPath() );
 	}
+
 	//serverLoadFinished();
+	removeDeletedFiles();
 }
 
 void WgpFileSystem::handleMyTablaturesResult( CommandState *state )
@@ -201,7 +206,9 @@ void WgpFileSystem::handleMyTablaturesResult( CommandState *state )
 			downloadTablature( jt["id"].toInt(), tablatureFile["originalName"].toString(), tablaturePath );
 		}
 	}
+
 	//serverLoadFinished();
+	removeDeletedFiles();
 }
 
 void WgpFileSystem::serverLoadFinished()
@@ -332,4 +339,20 @@ QStringList WgpFileSystem::findNewCategories( QString path )
 	}
 
 	return newCategories;
+}
+
+void WgpFileSystem::removeDeletedFiles()
+{
+	QDirIterator it( _model->rootPath(), QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
+	QJsonArray existingFiles	= meta->loadFileSystemFiles().array();
+
+	while ( it.hasNext() ) {
+		QString filePath = it.next();
+		//qDebug() << "'WgpFileSystem::removeDeletedFiles' File Path: " << filePath;
+
+		if ( ! existingFiles.contains( QJsonValue( filePath ) ) ) {
+			QFile file( filePath );
+			file.remove();
+		}
+	}
 }

@@ -17,6 +17,7 @@ class WgpFileSystemMeta
 		QJsonArray metaServerJson;
 		QJsonArray metaLocalJson;
 		QStringList m_differences;
+		QJsonArray metaFileSystemFilesJson;
 
 		void clearMeta();
 		void initServerObjects();
@@ -40,6 +41,10 @@ class WgpFileSystemMeta
 		void appendToServerObjects( QJsonObject jc );
 		void refreshServerObjects( QJsonObject jc );
 		QStringList compareMeta();
+
+		QJsonDocument loadFileSystemFiles();
+		void saveFileSystemFiles( QJsonDocument document );
+		void appendToFileSystemFiles( QString path );
 };
 
 #endif /* SRC_APPLICATION_WGPFILESYSTEMMETA_H_ */

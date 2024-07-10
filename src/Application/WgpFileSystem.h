@@ -28,6 +28,7 @@ class WgpFileSystem : public QObject
 
         void fixLocalMetaObjects();
         QStringList findNewCategories( QString path );
+        void removeDeletedFiles();
         void createModel();
         void initWatcher();
         void _createCategories( QJsonObject jc, QString path );
