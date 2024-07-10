@@ -26,7 +26,6 @@ WgpFileSystemMeta::WgpFileSystemMeta( WgpFileSystemModel *model )
 
 	initServerObjects();
 	initLocalObjects();
-	//fixLocalObjects();
 }
 
 void WgpFileSystemMeta::initServerObjects()
@@ -79,44 +78,6 @@ QJsonObject WgpFileSystemMeta::createMetaObject( QMap<QString, QVariant> data, F
 	}
 
 	return object;
-}
-
-void WgpFileSystemMeta::fixLocalObjects()
-{
-	QStringList newCategories = findNewCategories( _model->rootPath() );
-
-	for ( int i = 0; i < newCategories.size(); ++i ) {
-		qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Not Found: " << newCategories[i];
-
-		QMap<QString, QVariant> data;
-		data.insert( "name", QVariant( newCategories[i] ) );
-
-		appendToLocalObjects( createMetaObject( data, OBJECT_CATEGORY ) );
-	}
-}
-
-QStringList WgpFileSystemMeta::findNewCategories( QString path )
-{
-	QDirIterator it( path, QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
-	QDir dir;
-	QStringList newCategories = QStringList();
-
-	while ( it.hasNext() ) {
-		QString categoryPath = it.next();
-		//qDebug() << "'WgpFileSystemMeta::fixLocalObjects' Category Path: " << categoryPath;
-
-		QFileInfo fi( categoryPath );
-		if ( fi.isDir() ) {
-			dir	= QDir( categoryPath );
-			if ( ! inLocalObjects( dir.dirName(), OBJECT_CATEGORY ) ) {
-				newCategories << dir.dirName();
-			}
-		} else {
-
-		}
-	}
-
-	return newCategories;
 }
 
 QJsonDocument WgpFileSystemMeta::loadLocalObjects()
@@ -196,10 +157,10 @@ void WgpFileSystemMeta::saveServerObjects( QJsonDocument document )
 
 void WgpFileSystemMeta::appendToServerObjects( QJsonObject jc )
 {
-	metaLocalJson.append( jc );
+	metaServerJson.append( jc );
 
-	QJsonDocument document 	= loadLocalObjects();
-	document.setArray( metaLocalJson );
+	QJsonDocument document 	= loadServerObjects();
+	document.setArray( metaServerJson );
 	saveLocalObjects( document );
 }
 
@@ -213,7 +174,9 @@ void WgpFileSystemMeta::refreshServerObjects( QJsonObject jc )
 		metaServerJson.push_back( meta );
 	}
 
-	saveServerObjects( QJsonDocument::fromVariant( metaServerJson.toVariantList() ) );
+	QJsonDocument newMetaObjects	= QJsonDocument::fromVariant( metaServerJson.toVariantList() );
+	saveServerObjects( newMetaObjects );
+	saveLocalObjects( newMetaObjects );
 }
 
 void WgpFileSystemMeta::clearMeta()
@@ -226,6 +189,38 @@ void WgpFileSystemMeta::clearMeta()
 		metaLocalJson.pop_back();
 	}
 	*/
+
+	while( metaFileSystemFilesJson.count() ) {
+		metaFileSystemFilesJson.pop_back();
+	}
+}
+
+QJsonDocument WgpFileSystemMeta::loadFileSystemFiles()
+{
+	QString fileName	= _metaPath + "/file_system_files.json";
+
+    QFile jsonFile( fileName );
+    jsonFile.open( QFile::ReadOnly );
+
+    return QJsonDocument().fromJson( jsonFile.readAll() );
+}
+
+void WgpFileSystemMeta::saveFileSystemFiles( QJsonDocument document )
+{
+	QString fileName	= _metaPath + "/file_system_files.json";
+
+    QFile jsonFile( fileName );
+    jsonFile.open( QFile::WriteOnly );
+    jsonFile.write( document.toJson() );
+}
+
+void WgpFileSystemMeta::appendToFileSystemFiles( QString path )
+{
+	metaFileSystemFilesJson.insert( metaFileSystemFilesJson.size(), QJsonValue( path ) );
+
+	QJsonDocument document 	= loadFileSystemFiles();
+	document.setArray( metaFileSystemFilesJson );
+	saveFileSystemFiles( document );
 }
 
 QStringList WgpFileSystemMeta::compareMeta()

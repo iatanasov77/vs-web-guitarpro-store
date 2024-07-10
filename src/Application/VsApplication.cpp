@@ -99,11 +99,11 @@ QMap<QString, QString> VsApplication::languages()
 	/*
 	 *  Always translated in Bulgarian
 	 *
-	languages["en"]	= QObject::tr( "English" );
-	languages["bg"]	= QObject::tr( "Bulgarian" );
+	languages["en_US"]	= QObject::tr( "English" );
+	languages["bg_BG"]	= QObject::tr( "Bulgarian" );
 	*/
-	languages["en"]	= "English";
-	languages["bg"]	= "Bulgarian";
+	languages["en_US"]	= "English";
+	languages["bg_BG"]	= "Bulgarian";
 
 	return languages;
 }
@@ -117,10 +117,10 @@ void VsApplication::loadLanguage( const QLocale& locale )
 		QString languageName	= QLocale::languageToString( locale.language() );
 		QString rLanguage		= locale.name().split('_').at( 0 ).toLower();
 
-		switchTranslator( m_translator, QString( "QVocabulary_%1.qm" ).arg( locale.language() ) );
+		switchTranslator( m_translator, QString( "QVocabulary_%1.qm" ).arg( rLanguage ) );
 		switchTranslator( m_translatorQt, QString( "qt_%1.qm" ).arg( rLanguage ) );
 
-		VsSettings::instance()->setValue( SettingsKeys["LANGUAGE"], rLanguage, "General" );
+		VsSettings::instance()->setValue( SettingsKeys["LANGUAGE"], defaultLocale.name(), "General" );
 	}
 }
 

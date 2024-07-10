@@ -2,36 +2,30 @@
 #define SRC_APIMANAGER_HTTPFILEDOWNLOADER_H_
 
 #include <QObject>
-#include <QByteArray>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QSaveFile>
+#include "HttpRequestWorker.h"
+#include "CommandState.h"
 
 class HttpFileDownloader : public QObject
 {
 	Q_OBJECT
 
 	public:
-		explicit HttpFileDownloader( QObject *parent = nullptr );
-		virtual ~HttpFileDownloader();
-		QByteArray downloadedData( QString target ) const;
-
+		static HttpFileDownloader* instance();
 		void download( QString url, QString targetPath );
-		void download( QString url, QString targetPath, QMap<QString, QString> headers );
 
 	signals:
 		void downloaded( QString targetPath );
 
 	private slots:
-		void fileDownloaded( QNetworkReply* pReply );
+		void fileDownloaded( CommandState *state );
 
 	private:
-		QNetworkAccessManager *manager;
-		QMap<QString, QByteArray> m_DownloadedData;
+		static HttpFileDownloader *_instance;
+		QMap<QString, HttpRequestInput*> downloadFiles;
 
-		QMap<QString, QString> downloadFiles;
-		QList<QSaveFile*> files;
+		static HttpFileDownloader* createInstance();
+		HttpFileDownloader( QObject *parent = nullptr );
+
 		void writeFile( QString filePath, QByteArray data );
 };
 

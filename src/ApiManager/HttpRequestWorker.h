@@ -9,8 +9,9 @@
 #include <QNetworkReply>
 #include <QWidget>
 
-#include "AbstractRequest.h"
-#include "HttpRequestInput.h"
+#include "CommandState.h"
+#include "Request/AbstractRequest.h"
+#include "Request/HttpRequestInput.h"
 
 /**
  * https://www.creativepulse.gr/en/blog/2014/restful-api-requests-using-qt-cpp-for-linux-mac-osx-ms-windows
@@ -22,37 +23,35 @@ class HttpRequestWorker : public QObject
     Q_OBJECT
 
 	public:
-		QByteArray response;
-		QNetworkReply::NetworkError errorType;
-
 		static HttpRequestWorker* instance();
 		QNetworkAccessManager *manager();
-		void execute( HttpRequestInput input, QString strRequestName, bool needAuthorization = false );
-		void execute( HttpRequestInput input, QString strRequestName, QMap<QString, QString> headers, bool needAuthorization = false );
+		void execute( HttpRequestInput *input, QString strRequestName, bool needAuthorization = false );
+		void execute( HttpRequestInput *input, QString strRequestName, QMap<QString, QString> headers, bool needAuthorization = false );
 
 	signals:
-		void workerFinished( HttpRequestWorker *worker );
-		void loginCheckResponseReady( HttpRequestWorker *worker );
-		void myCategoriesResponseReady( HttpRequestWorker *worker );
-		void myTablaturesResponseReady( HttpRequestWorker *worker );
-		void myCategoryUpdateResponseReady( HttpRequestWorker *worker );
-		void myTablatureUploadResponseReady( HttpRequestWorker *worker );
+		void workerFinished( CommandState *state );
+		void loginCheckResponseReady( CommandState *state );
+		void myTablatureDownloadResponseReady( CommandState *state );
+		void myCategoriesResponseReady( CommandState *state );
+		void myTablaturesResponseReady( CommandState *state );
+		void myCategoryUpdateResponseReady( CommandState *state );
+		void myTablatureUploadResponseReady( CommandState *state );
 
 	private:
 		static HttpRequestWorker *_instance;
 
 		QNetworkAccessManager *_manager;
+		QMap<QString, CommandState*> commandState;
 		QCache<int, QMap<QString, QVariant>> *commandStack;
-
-		QString errorStr;
-		QString requestName;
-		QString lastFinishedRequest;
 		bool working;
+		QString currentCommandId;
+		QString lastFinishedRequest;
+		QString downloadingFile;
 
 		HttpRequestWorker( QObject *parent = 0 );
 		static HttpRequestWorker* createInstance();
 
-		void resetWorker();
+		QString generateCommandId() const;
 		void _authorizeRequest( QNetworkRequest *request );
 		void _sendRequest( AbstractRequest *requestWrapper, bool needAuthorization );
 		void debugNetworkReply( QNetworkReply *reply );
@@ -62,17 +61,18 @@ class HttpRequestWorker : public QObject
 		void debugRequest( QNetworkRequest *request );
 		void debugAuthorizationSettings();
 
-		void handleLoginCheck();
-		void handleMyCategoriesResult();
-		void handleMyTablaturesResult();
-		void handleMyTablaturesUncategorizedResult();
-		void handleUpdateCategoryResult();
-		void handleUploadTablatureResult();
+		void handleLoginCheck( CommandState *state );
+		void handleMyTablatureDownload( CommandState *state );
+		void handleMyCategoriesResult( CommandState *state );
+		void handleMyTablaturesResult( CommandState *state );
+		void handleMyTablaturesUncategorizedResult( CommandState *state );
+		void handleUpdateCategoryResult( CommandState *state );
+		void handleUploadTablatureResult( CommandState *state );
 
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );
-		void handleRequest();
-		void sendNextRequest();
+		void handleRequest( CommandState *state );
+		void sendNextRequest( CommandState *state );
 
 };
 

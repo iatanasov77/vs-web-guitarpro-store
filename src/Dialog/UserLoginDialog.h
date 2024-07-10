@@ -2,7 +2,7 @@
 #define DIALOG_USER_LOGIN_H
 
 #include <QDialog>
-#include "ApiManager/HttpRequestWorker.h"
+#include "ApiManager/CommandState.h"
 #include "Application/WgpWaitingSpinner.h"
 
 namespace Ui {
@@ -25,7 +25,7 @@ class UserLoginDialog : public QDialog
 
 	public slots:
 		void save();
-		void handleAuthResult( HttpRequestWorker *worker );
+		void handleAuthResult( CommandState *state );
 };
 
 #endif // DIALOG_USER_LOGIN_H

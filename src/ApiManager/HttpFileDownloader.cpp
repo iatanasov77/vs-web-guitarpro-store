@@ -1,69 +1,62 @@
 #include "HttpFileDownloader.h"
-#include "HttpRequestWorker.h"
+
+#include <QDebug>
+#include <QSaveFile>
+
+/*
+ * This one did the trick!
+ * ------------------------
+ * But I want to do this: https://stackoverflow.com/questions/46172607/qt-singleton-implementation
+ */
+HttpFileDownloader *HttpFileDownloader::_instance = 0;
 
 HttpFileDownloader::HttpFileDownloader( QObject *parent ) : QObject( parent )
 {
-	manager	= HttpRequestWorker::instance()->manager();
-
+	//qDebug() << "FILE DOWNLOADER INITIALIZED !!!";
 	connect(
-		manager, SIGNAL ( finished( QNetworkReply* ) ),
-		this, SLOT ( fileDownloaded( QNetworkReply* ) )
+		HttpRequestWorker::instance(), SIGNAL ( myTablatureDownloadResponseReady( CommandState* ) ),
+		this, SLOT ( fileDownloaded( CommandState* ) )
 	);
 }
 
-HttpFileDownloader::~HttpFileDownloader() { }
-
-void HttpFileDownloader::fileDownloaded( QNetworkReply* pReply )
+HttpFileDownloader *HttpFileDownloader::createInstance()
 {
-	for( auto key : downloadFiles.keys() ) {
-		if ( downloadFiles.value( key ) == pReply->request().url().toString() ) {
-			m_DownloadedData[key]	= pReply->readAll();
-			writeFile( key, m_DownloadedData[key] );
-
-			//emit a signal
-			pReply->deleteLater();
-			emit downloaded( key );
-
-			//qDebug() << "FILE DOWNLOADED: " << key << "   (" << m_DownloadedData[key].length() << " BITES)";
-		}
-	}
+    return new HttpFileDownloader();
 }
 
-QByteArray HttpFileDownloader::downloadedData( QString target ) const
+HttpFileDownloader *HttpFileDownloader::instance() {
+	if ( ! _instance ) {
+		_instance = createInstance();
+	}
+
+	return _instance;
+}
+
+void HttpFileDownloader::fileDownloaded( CommandState *state )
 {
-	return m_DownloadedData[target];
+	QString fileTarget	= state->downloadedFile;
+	QByteArray fileData	= state->response;
+
+	qDebug() << "FILE DOWNLOADED: " << fileTarget << "   (" << fileData.length() << " BITES )";
+	writeFile( fileTarget, fileData );
+	emit downloaded( fileTarget );
 }
 
 void HttpFileDownloader::download( QString url, QString targetPath )
 {
-	downloadFiles[targetPath] = url;
+	qDebug() << "'HttpFileDownloader::download' Download URL: " << url;
 
-	QUrl fileUrl( url );
-	QNetworkRequest request( fileUrl );
-	manager->get( request );
-}
+	downloadFiles[targetPath]				= new HttpRequestInput( url, "GET", targetPath );
+	downloadFiles[targetPath]->requestType	= REQUEST_TYPE_DOWNLOAD;
 
-void HttpFileDownloader::download( QString url, QString targetPath, QMap<QString, QString> headers )
-{
-	downloadFiles[targetPath] = url;
-
-	QUrl fileUrl( url );
-	QNetworkRequest request( fileUrl );
-
-	if ( ! headers.empty() ) {
-		foreach ( const QString &key, headers.keys() ) {
-			request.setRawHeader( key.toUtf8(), headers.value( key ).toUtf8() );
-		}
-	}
-
-	manager->get( request );
+	HttpRequestWorker::instance()->execute( downloadFiles[targetPath], HttpRequests["DOWNLOAD_TABLATURE_REQUEST"], true );
 }
 
 void HttpFileDownloader::writeFile( QString filePath, QByteArray data )
 {
-	files << new QSaveFile( filePath );
-	files.last()->open( QIODevice::WriteOnly );
-	files.last()->write( data );
+	QSaveFile *flie	= new QSaveFile( filePath );
 
-	files.last()->commit();	// Calling commit() is mandatory, otherwise nothing will be written.
+	flie->open( QIODevice::WriteOnly );
+	flie->write( data );
+	flie->commit();	// Calling commit() is mandatory, otherwise nothing will be written.
 }

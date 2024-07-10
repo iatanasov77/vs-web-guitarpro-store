@@ -7,7 +7,7 @@
 #include <QTreeWidgetItem>
 #include <QJsonObject>
 
-#include "ApiManager/HttpRequestWorker.h"
+#include "ApiManager/CommandState.h"
 #include "Model/WgpFileSystemModel.h"
 #include "Dialog/UserLoginDialog.h"
 
@@ -39,8 +39,8 @@ class SystemTrayMenu : public QWidget
 
 	private slots:
 		void logout();
-		void handleMyCategoriesResult( HttpRequestWorker *worker );
-		void handleMyTablaturesResult( HttpRequestWorker *worker );
+		void handleMyCategoriesResult( CommandState *state );
+		void handleMyTablaturesResult( CommandState *state );
 		void openWebGuitarProFolder();
 };
 

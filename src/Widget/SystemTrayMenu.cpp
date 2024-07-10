@@ -19,6 +19,7 @@
 #include "Application/VsSettings.h"
 #include "Application/WgpMyTablatures.h"
 #include "Application/WgpFileSystem.h"
+#include "ApiManager/HttpRequestWorker.h"
 
 SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 	QWidget( parent ),
@@ -39,13 +40,13 @@ SystemTrayMenu::SystemTrayMenu( QWidget *parent ) :
 
 	/*  */
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleMyCategoriesResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyCategoriesResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyTablaturesResult( CommandState* ) )
 	);
 
 	if ( VsAuth::instance()->isLoggedIn() ) {
@@ -69,7 +70,7 @@ void SystemTrayMenu::loginToWebGuitarPro()
 
 	if ( loginDialog->exec() == QDialog::Accepted )
 	{
-		qDebug() << "'SystemTrayMenu::loginToWebGuitarPro' UserLoginDialog: ACCEPTED";
+		//qDebug() << "'SystemTrayMenu::loginToWebGuitarPro' UserLoginDialog: ACCEPTED";
 		_createToolBar();
 		_displayMyTablatures();
 		//_syncFileSystem();
@@ -210,9 +211,9 @@ void SystemTrayMenu::_syncFileSystem()
 	WgpFileSystem::instance()->sync();
 }
 
-void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
+void SystemTrayMenu::handleMyCategoriesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	//qDebug() << "'SystemTrayMenu::handleMyCategoriesResult' Result Size: " << results.size();
 
@@ -233,9 +234,9 @@ void SystemTrayMenu::handleMyCategoriesResult( HttpRequestWorker *worker )
 	_setTopLevelItems( items );
 }
 
-void SystemTrayMenu::handleMyTablaturesResult( HttpRequestWorker *worker )
+void SystemTrayMenu::handleMyTablaturesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	//qDebug() << "'SystemTrayMenu::handleMyTablaturesResult' Result Size: " << results.size();
 

@@ -5,8 +5,7 @@
 #include <QFileSystemWatcher>
 #include <QJsonObject>
 
-#include "ApiManager/HttpRequestWorker.h"
-#include "ApiManager/HttpFileDownloader.h"
+#include "ApiManager/CommandState.h"
 #include "Model/WgpFileSystemModel.h"
 #include "Model/WgpFileIconProvider.h"
 #include "WgpFileSystemMeta.h"
@@ -18,7 +17,6 @@ class WgpFileSystem : public QObject
 	private:
 		static WgpFileSystem *_instance;
 		QStringList allowedMimeTypes;
-		HttpFileDownloader *downloader;
 
 		WgpFileSystemModel *_model;
 		WgpFileIconProvider *iconProvider;
@@ -28,9 +26,11 @@ class WgpFileSystem : public QObject
 		WgpFileSystem( QObject *_parent = nullptr );
         static WgpFileSystem *createInstance();
 
+        void fixLocalMetaObjects();
+        QStringList findNewCategories( QString path );
+        void removeDeletedFiles();
         void createModel();
         void initWatcher();
-        QMap<QString, QString> authHeaders();
         void _createCategories( QJsonObject jc, QString path );
 
 	public:
@@ -43,10 +43,10 @@ class WgpFileSystem : public QObject
         void downloadTablature( int tabId, QString originalName, QString tablaturePath );
 
     public slots:
-        void handleMyCategoriesResult( HttpRequestWorker *worker );
-        void handleMyTablaturesResult( HttpRequestWorker *worker );
-        void handleUpdateCategoryResult( HttpRequestWorker *worker );
-        void handleUploadTablatureResult( HttpRequestWorker *worker );
+        void handleMyCategoriesResult( CommandState *state );
+        void handleMyTablaturesResult( CommandState *state );
+        void handleUpdateCategoryResult( CommandState *state );
+        void handleUploadTablatureResult( CommandState *state );
         void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
         void fileRenamed( QString path, QString oldName, QString newName );

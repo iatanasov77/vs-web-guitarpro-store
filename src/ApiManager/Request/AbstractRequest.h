@@ -20,6 +20,7 @@ class AbstractRequest : public QObject
 		QByteArray _requestContent;
 
 	public:
+		QString commandId;
 		QString requestName;
 
 		AbstractRequest( HttpRequestInput *input,  QObject *parent = 0  );

@@ -7,9 +7,11 @@
 #include <QJsonArray>
 #include <QMimeDatabase>
 
+#include "ApiManager/HttpRequestWorker.h"
 #include "VsApplication.h"
 #include "VsSettings.h"
 #include "WgpMyTablatures.h"
+#include "ApiManager/HttpFileDownloader.h"
 
 WgpFileSystem *WgpFileSystem::_instance = nullptr;
 
@@ -18,32 +20,31 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	Q_UNUSED( parent );
 
 	allowedMimeTypes = QStringList{ "application/gpx+xml", "application/octet-stream" };
-	downloader	= new HttpFileDownloader();
-
 	createModel();
+	//fixLocalMetaObjects();
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleMyCategoriesResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoriesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyCategoriesResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleMyTablaturesResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablaturesResponseReady( CommandState* ) ),
+		this, SLOT( handleMyTablaturesResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleUpdateCategoryResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myCategoryUpdateResponseReady( CommandState* ) ),
+		this, SLOT( handleUpdateCategoryResult( CommandState* ) )
 	);
 
 	connect(
-		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( HttpRequestWorker* ) ),
-		this, SLOT( handleUploadTablatureResult( HttpRequestWorker* ) )
+		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( CommandState* ) ),
+		this, SLOT( handleUploadTablatureResult( CommandState* ) )
 	);
 
 	connect(
-		downloader, SIGNAL( downloaded( QString ) ),
+		HttpFileDownloader::instance(), SIGNAL( downloaded( QString ) ),
 		this, SLOT( handleDownloadedTablature( QString ) )
 	);
 	/*
@@ -119,7 +120,10 @@ void WgpFileSystem::sync()
  */
 void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 {
+	//qDebug() << "'WgpFileSystem::_createCategories' Category Path: " << path;
 	QString categoryPath	= QString( "%1/%2" ).arg( path, jc["name"].toString() );
+	meta->appendToFileSystemFiles( categoryPath );
+
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
 		createCategory( jc["name"].toString(), path );
@@ -127,6 +131,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 
 	QJsonObject children	= jc.value( "children" ).toObject();
 	foreach( const QString& key, children.keys() ) {
+		qDebug() << "'WgpFileSystem::_createCategories' Has Child: " << key;
 		QJsonObject child	= children.value( key ).toObject();
 
 		_createCategories( child, categoryPath );
@@ -139,6 +144,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 		// Tablature Original File Name
 		QJsonObject tablatureFile	= jt.value( "tablatureFile" ).toObject();
 		QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
+		meta->appendToFileSystemFiles( tablaturePath );
 
 		if ( ! QFile::exists( tablaturePath ) ) {
 			//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
@@ -147,25 +153,25 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 	}
 }
 
-void WgpFileSystem::handleUpdateCategoryResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleUpdateCategoryResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject result	= doc.object();
 	meta->appendToServerObjects( result );
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleUploadTablatureResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleUploadTablatureResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject result	= doc.object();
 	meta->appendToServerObjects( result );
 	meta->appendToLocalObjects( result );
 }
 
-void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleMyCategoriesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	meta->refreshServerObjects( results );
 
@@ -177,12 +183,14 @@ void WgpFileSystem::handleMyCategoriesResult( HttpRequestWorker *worker )
 
 		_createCategories( jc, _model->rootPath() );
 	}
+
 	//serverLoadFinished();
+	removeDeletedFiles();
 }
 
-void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
+void WgpFileSystem::handleMyTablaturesResult( CommandState *state )
 {
-	QJsonDocument doc	= QJsonDocument::fromJson( worker->response );
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject results	= doc.object();
 	meta->refreshServerObjects( results );
 
@@ -198,12 +206,14 @@ void WgpFileSystem::handleMyTablaturesResult( HttpRequestWorker *worker )
 			downloadTablature( jt["id"].toInt(), tablatureFile["originalName"].toString(), tablaturePath );
 		}
 	}
+
 	//serverLoadFinished();
+	removeDeletedFiles();
 }
 
 void WgpFileSystem::serverLoadFinished()
 {
-	qDebug() << "META DIFFERENCES \n=============================\n";
+	//qDebug() << "META DIFFERENCES \n=============================\n";
 
 	QStringList list	= meta->compareMeta();
 	for ( const auto& i : list  )
@@ -214,7 +224,7 @@ void WgpFileSystem::serverLoadFinished()
 
 void WgpFileSystem::metaDifferences()
 {
-	qDebug() << "META DIFFERENCES \n=============================\n";
+	//qDebug() << "META DIFFERENCES \n=============================\n";
 
 	QStringList list	= meta->compareMeta();
 	for ( const auto& i : list  )
@@ -252,13 +262,13 @@ void WgpFileSystem::fileModified( QString path )
 
 void WgpFileSystem::directoryModified( QString path )
 {
-	qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
+	//qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
 	QString categoryPath;
 	metaDifferences();
 	QFileInfo fi( path );
 
 	QDateTime lastModified		= fi.lastModified();
-	QStringList newCategories	= meta->findNewCategories( _model->rootPath() );
+	QStringList newCategories	= findNewCategories( _model->rootPath() );
 	for ( int i = 0; i < newCategories.size(); ++i ) {
 		//qDebug() << "'WgpFileSystem::directoryModified' Creating New Category ...";
 
@@ -268,16 +278,6 @@ void WgpFileSystem::directoryModified( QString path )
 		categoryPath	= QString( "%1/%2" ).arg( path, newCategories[i] );
 		watcher->addPath( categoryPath );
 	}
-}
-
-QMap<QString, QString> WgpFileSystem::authHeaders()
-{
-	QMap<QString, QString> headers;
-	QVariant authToken	= VsSettings::instance()->value( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] ).toHash().value( "token" );
-
-	headers.insert( "Authorization", QString( "Bearer " ).append( authToken.toString() ) );
-
-	return headers;
 }
 
 WgpFileSystemModel *WgpFileSystem::model()
@@ -300,5 +300,59 @@ void WgpFileSystem::downloadTablature( int tabId, QString originalName, QString 
 						.arg( tabId )
 						.arg( originalName );
 
-	downloader->download( fileUrl, tablaturePath, authHeaders() );
+	HttpFileDownloader::instance()->download( fileUrl, tablaturePath );
+}
+
+void WgpFileSystem::fixLocalMetaObjects()
+{
+	QStringList newCategories = findNewCategories( _model->rootPath() );
+
+	for ( int i = 0; i < newCategories.size(); ++i ) {
+		qDebug() << "'WgpFileSystem::fixLocalMetaObjects' Not Found: " << newCategories[i];
+
+		QMap<QString, QVariant> data;
+		data.insert( "name", QVariant( newCategories[i] ) );
+
+		meta->appendToLocalObjects( meta->createMetaObject( data, OBJECT_CATEGORY ) );
+	}
+}
+
+QStringList WgpFileSystem::findNewCategories( QString path )
+{
+	QDirIterator it( path, QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
+	QDir dir;
+	QStringList newCategories = QStringList();
+
+	while ( it.hasNext() ) {
+		QString categoryPath = it.next();
+		//qDebug() << "'WgpFileSystem::fixLocalObjects' Category Path: " << categoryPath;
+
+		QFileInfo fi( categoryPath );
+		if ( fi.isDir() ) {
+			dir	= QDir( categoryPath );
+			if ( ! meta->inLocalObjects( dir.dirName(), OBJECT_CATEGORY ) ) {
+				newCategories << dir.dirName();
+			}
+		} else {
+
+		}
+	}
+
+	return newCategories;
+}
+
+void WgpFileSystem::removeDeletedFiles()
+{
+	QDirIterator it( _model->rootPath(), QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
+	QJsonArray existingFiles	= meta->loadFileSystemFiles().array();
+
+	while ( it.hasNext() ) {
+		QString filePath = it.next();
+		//qDebug() << "'WgpFileSystem::removeDeletedFiles' File Path: " << filePath;
+
+		if ( ! existingFiles.contains( QJsonValue( filePath ) ) ) {
+			QFile file( filePath );
+			file.remove();
+		}
+	}
 }
