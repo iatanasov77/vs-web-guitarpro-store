@@ -170,10 +170,16 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 
 void WgpFileSystem::handleUpdateCategoryResult( CommandState *state )
 {
+	qDebug() << "WgpFileSystem::handleUpdateCategoryResult Executed ...";
+
 	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
 	QJsonObject result	= doc.object();
+
 	meta->appendToServerObjects( result );
 	meta->appendToLocalObjects( result );
+
+	QString categoryPath	= QString( "%1/%2" ).arg( _model->rootPath(), result["name"].toString() );
+	meta->appendToFileSystemFiles( QString::number( result["id"].toInt() ), categoryPath );
 }
 
 void WgpFileSystem::handleUploadTablatureResult( CommandState *state )

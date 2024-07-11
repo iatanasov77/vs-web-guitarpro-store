@@ -161,7 +161,7 @@ void WgpFileSystemMeta::appendToServerObjects( QJsonObject jc )
 
 	QJsonDocument document 	= loadServerObjects();
 	document.setArray( metaServerJson );
-	saveLocalObjects( document );
+	saveServerObjects( document );
 }
 
 void WgpFileSystemMeta::refreshServerObjects( QJsonObject jc )

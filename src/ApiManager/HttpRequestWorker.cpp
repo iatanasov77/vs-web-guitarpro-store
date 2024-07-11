@@ -138,6 +138,7 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 
 void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
 {
+	qDebug() << "HttpRequestWorker::onManagerFinished Triggered ...";
 	working = false;
 	QNetworkRequest request	= reply->request();
 
@@ -328,6 +329,8 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 
 void HttpRequestWorker::handleRequest( CommandState *state )
 {
+	qDebug() << "HttpRequestWorker::handleRequest Triggered ...";
+
 	if ( state->requestName == HttpRequests["LOGIN_REQUEST"] ) {
 		//return;
 		handleLoginCheck( state );
