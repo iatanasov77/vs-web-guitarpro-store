@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonObject>
 
 #include "GlobalTypes.h"
 #include "Model/WgpFileSystemModel.h"
@@ -17,7 +18,7 @@ class WgpFileSystemMeta
 		QJsonArray metaServerJson;
 		QJsonArray metaLocalJson;
 		QStringList m_differences;
-		QJsonArray metaFileSystemFilesJson;
+		QJsonObject metaFileSystemFilesJson;
 
 		void clearMeta();
 		void initServerObjects();
@@ -42,9 +43,10 @@ class WgpFileSystemMeta
 		void refreshServerObjects( QJsonObject jc );
 		QStringList compareMeta();
 
+		QJsonObject fileSystemFiles();
 		QJsonDocument loadFileSystemFiles();
 		void saveFileSystemFiles( QJsonDocument document );
-		void appendToFileSystemFiles( QString path );
+		void appendToFileSystemFiles( QString id, QString path );
 };
 
 #endif /* SRC_APPLICATION_WGPFILESYSTEMMETA_H_ */

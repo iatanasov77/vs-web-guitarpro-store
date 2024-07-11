@@ -19,8 +19,12 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 {
 	Q_UNUSED( parent );
 
-	allowedMimeTypes = QStringList{ "application/gpx+xml", "application/octet-stream" };
 	createModel();
+
+	allowedMimeTypes 	= QStringList{ "application/gpx+xml", "application/octet-stream" };
+	reservedNames		= QStringList{ "Shared To Me Tablatures" };
+	reservedNames << QString( "%1/%2" ).arg( _model->rootPath(), "Shared To Me Tablatures" );
+
 	//fixLocalMetaObjects();
 
 	connect(
@@ -128,7 +132,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 {
 	//qDebug() << "'WgpFileSystem::_createCategories' Category Path: " << path;
 	QString categoryPath	= QString( "%1/%2" ).arg( path, jc["name"].toString() );
-	meta->appendToFileSystemFiles( categoryPath );
+	meta->appendToFileSystemFiles( QString::number( jc["id"].toInt() ), categoryPath );
 
 	if ( ! QDir( categoryPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << categoryPath;
@@ -150,7 +154,7 @@ void WgpFileSystem::_createCategories( QJsonObject jc, QString path )
 		// Tablature Original File Name
 		QJsonObject tablatureFile	= jt.value( "tablatureFile" ).toObject();
 		QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
-		meta->appendToFileSystemFiles( tablaturePath );
+		meta->appendToFileSystemFiles( QString::number( jt["id"].toInt() ), tablaturePath );
 
 		if ( ! QFile::exists( tablaturePath ) ) {
 			//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
@@ -221,7 +225,7 @@ void WgpFileSystem::handleSharedToMeTablaturesResult( CommandState *state )
 {
 	// Create Root Path
 	QString rootPath	= QString( "%1/%2" ).arg( _model->rootPath(), "Shared To Me Tablatures" );
-	meta->appendToFileSystemFiles( rootPath );
+	meta->appendToFileSystemFiles( QString::number( 0 ), rootPath );
 
 	if ( ! QDir( rootPath ).exists() ) {
 		//qDebug() << "PATH NOT EXISTS: " << rootPath;
@@ -236,7 +240,7 @@ void WgpFileSystem::handleSharedToMeTablaturesResult( CommandState *state )
 		QJsonObject jc	= results.value( key ).toObject();
 
 		QString categoryPath	= QString( "%1/%2" ).arg( rootPath, jc["name"].toString() );
-		meta->appendToFileSystemFiles( categoryPath );
+		meta->appendToFileSystemFiles( QString::number( jc["id"].toInt() ), categoryPath );
 
 		if ( ! QDir( categoryPath ).exists() ) {
 			//qDebug() << "PATH NOT EXISTS: " << categoryPath;
@@ -250,7 +254,7 @@ void WgpFileSystem::handleSharedToMeTablaturesResult( CommandState *state )
 			// Tablature Original File Name
 			QJsonObject tablatureFile	= jt.value( "tablatureFile" ).toObject();
 			QString tablaturePath		= categoryPath + "/" + tablatureFile["originalName"].toString();
-			meta->appendToFileSystemFiles( tablaturePath );
+			meta->appendToFileSystemFiles( QString::number( jt["id"].toInt() ), tablaturePath );
 
 			if ( ! QFile::exists( tablaturePath ) ) {
 				//qDebug() << "FILE NOT EXISTS: " << tablaturePath;
@@ -297,6 +301,7 @@ void WgpFileSystem::fileRenamed( QString path, QString oldName, QString newName 
 void WgpFileSystem::fileModified( QString path )
 {
 	qDebug() << "'WgpFileSystem::fileModified' Path Modified: " << path;
+	QJsonObject metaFiles	= meta->fileSystemFiles();
 	metaDifferences();
 	QFileInfo fi( path );
 
@@ -304,25 +309,40 @@ void WgpFileSystem::fileModified( QString path )
 	QString mimeType		= QMimeDatabase().mimeTypeForFile( path ).name();
 	//qDebug() << "Mime type:" << mimeType;
 	if ( allowedMimeTypes.contains( mimeType ) ) {
-		//WgpMyTablatures::instance()->createTablature( path );
-		//WgpMyTablatures::instance()->updateTablature( 1, path );
+		if ( fi.exists() ) {
+			//WgpMyTablatures::instance()->updateTablature( metaFiles.value( path ).toInt(), path );
+		} else {
+			//WgpMyTablatures::instance()->createTablature( path );
+		}
 	}
 }
 
 void WgpFileSystem::directoryModified( QString path )
 {
-	//qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
+	qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
+	QJsonObject metaFiles	= meta->fileSystemFiles();
 	QString categoryPath;
 	metaDifferences();
 	QFileInfo fi( path );
 
-	QDateTime lastModified		= fi.lastModified();
+	if ( reservedNames.contains( fi.fileName() ) ) {
+		return;
+	}
+
+	if ( fi.exists() ) {
+		QDateTime lastModified		= fi.lastModified();
+
+		//WgpMyTablatures::instance()->updateTablatureCategory( metaFiles.value( path ).toInt(), fi.fileName() );
+	} else {
+		WgpMyTablatures::instance()->deleteTablatureCategory( metaFiles.value( path ).toInt() );
+		return;
+	}
+
 	QStringList newCategories	= findNewCategories( _model->rootPath() );
 	for ( int i = 0; i < newCategories.size(); ++i ) {
-		//qDebug() << "'WgpFileSystem::directoryModified' Creating New Category ...";
+		qDebug() << "'WgpFileSystem::directoryModified' Creating New Category ...";
 
-		//WgpMyTablatures::instance()->createTablatureCategory( newCategories[i] );
-		//WgpMyTablatures::instance()->updateTablatureCategory( 1, newCategories[i] );
+		WgpMyTablatures::instance()->createTablatureCategory( newCategories[i] );
 
 		categoryPath	= QString( "%1/%2" ).arg( path, newCategories[i] );
 		watcher->addPath( categoryPath );
@@ -376,6 +396,10 @@ QStringList WgpFileSystem::findNewCategories( QString path )
 		QString categoryPath = it.next();
 		//qDebug() << "'WgpFileSystem::fixLocalObjects' Category Path: " << categoryPath;
 
+		if ( reservedNames.contains( categoryPath ) ) {
+			continue;
+		}
+
 		QFileInfo fi( categoryPath );
 		if ( fi.isDir() ) {
 			dir	= QDir( categoryPath );
@@ -393,13 +417,17 @@ QStringList WgpFileSystem::findNewCategories( QString path )
 void WgpFileSystem::removeDeletedFiles()
 {
 	QDirIterator it( _model->rootPath(), QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::Subdirectories );
-	QJsonArray existingFiles	= meta->loadFileSystemFiles().array();
+	QJsonObject existingFiles	= meta->fileSystemFiles();
 
 	while ( it.hasNext() ) {
 		QString filePath = it.next();
+
+		if ( reservedNames.contains( filePath ) ) {
+			return;
+		}
 		//qDebug() << "'WgpFileSystem::removeDeletedFiles' File Path: " << filePath;
 
-		if ( ! existingFiles.contains( QJsonValue( filePath ) ) ) {
+		if ( ! existingFiles.keys().contains( filePath ) ) {
 			QFile file( filePath );
 			file.remove();
 		}
