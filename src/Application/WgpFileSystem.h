@@ -17,6 +17,7 @@ class WgpFileSystem : public QObject
 	private:
 		static WgpFileSystem *_instance;
 		QStringList allowedMimeTypes;
+		QString excludePath;
 		QStringList reservedNames;
 
 		WgpFileSystemModel *_model;
@@ -51,6 +52,7 @@ class WgpFileSystem : public QObject
         void handleUploadTablatureResult( CommandState *state );
         void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
+        void directoryLoaded( QString path );
         void fileRenamed( QString path, QString oldName, QString newName );
         void fileModified( QString path );
         void directoryModified( QString path );

@@ -22,8 +22,8 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	createModel();
 
 	allowedMimeTypes 	= QStringList{ "application/gpx+xml", "application/octet-stream" };
-	reservedNames		= QStringList{ "Shared To Me Tablatures" };
-	reservedNames << QString( "%1/%2" ).arg( _model->rootPath(), "Shared To Me Tablatures" );
+	excludePath			= QString( "%1/%2" ).arg( _model->rootPath(), "Shared To Me Tablatures" );
+	reservedNames << excludePath << "Shared To Me Tablatures";
 
 	//fixLocalMetaObjects();
 
@@ -89,6 +89,11 @@ void WgpFileSystem::createModel()
 
 	_model->setIconProvider( iconProvider );
 	initWatcher();
+
+	connect(
+		_model, SIGNAL( directoryLoaded( const QString& ) ),
+		this, SLOT( directoryLoaded( QString ) )
+	);
 
 	connect(
 		_model, SIGNAL( fileRenamed( const QString&, const QString&, const QString& ) ),
@@ -291,6 +296,20 @@ void WgpFileSystem::handleDownloadedTablature( QString targetPath )
 	watcher->addPath( targetPath );
 }
 
+void WgpFileSystem::directoryLoaded( QString path )
+{
+	qDebug() << "'WgpFileSystem::directoryLoaded' Path: " << path;
+	if ( path == _model->rootPath() || path.startsWith( excludePath ) ) {
+		return;
+	}
+
+	QJsonObject existingFiles	= meta->fileSystemFiles();
+	if ( ! existingFiles.keys().contains( path ) ) {
+		QDir dir	= QDir( path );
+		WgpMyTablatures::instance()->createTablatureCategory( dir.dirName() );
+	}
+}
+
 void WgpFileSystem::fileRenamed( QString path, QString oldName, QString newName )
 {
 	qDebug() << "'WgpFileSystem::fileRenamed' Path Renamed: " << path;
@@ -331,8 +350,11 @@ void WgpFileSystem::directoryModified( QString path )
 
 	if ( fi.exists() ) {
 		QDateTime lastModified		= fi.lastModified();
+		int modifiedDirectoryId	= metaFiles.value( path ).toInt();
 
-		//WgpMyTablatures::instance()->updateTablatureCategory( metaFiles.value( path ).toInt(), fi.fileName() );
+		if ( modifiedDirectoryId > 0 ) {
+			WgpMyTablatures::instance()->updateTablatureCategory( modifiedDirectoryId, fi.fileName() );
+		}
 	} else {
 		WgpMyTablatures::instance()->deleteTablatureCategory( metaFiles.value( path ).toInt() );
 		return;
@@ -396,7 +418,7 @@ QStringList WgpFileSystem::findNewCategories( QString path )
 		QString categoryPath = it.next();
 		//qDebug() << "'WgpFileSystem::fixLocalObjects' Category Path: " << categoryPath;
 
-		if ( reservedNames.contains( categoryPath ) ) {
+		if ( categoryPath.startsWith( excludePath ) ) {
 			continue;
 		}
 
