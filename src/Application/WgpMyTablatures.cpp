@@ -101,6 +101,10 @@ void WgpMyTablatures::updateTablatureCategory( int categoryId, QString $name )
 
 void WgpMyTablatures::deleteTablatureCategory( int categoryId )
 {
+	if ( categoryId <= 0 ) {
+		return;
+	}
+
 	QString strUrl			= VsApplication::instance()->apiUrl().append( QString( "/my-categories/%1" ).arg( categoryId ) );
 	HttpRequestInput *input	= new HttpRequestInput( strUrl, "DELETE" );
 	input->requestType		= REQUEST_TYPE_JSON;
@@ -137,6 +141,10 @@ void WgpMyTablatures::updateTablature( int tablatureId, QString $name )
 
 void WgpMyTablatures::deleteTablature( int tablatureId )
 {
+	if ( tablatureId <= 0 ) {
+		return;
+	}
+
 	QString strUrl			= VsApplication::instance()->apiUrl().append( QString( "/tablatures/%1" ).arg( tablatureId ) );
 	HttpRequestInput *input	= new HttpRequestInput( strUrl, "DELETE" );
 	input->requestType		= REQUEST_TYPE_JSON;

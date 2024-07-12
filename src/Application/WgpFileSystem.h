@@ -50,6 +50,7 @@ class WgpFileSystem : public QObject
         void handleMyTablaturesResult( CommandState *state );
         void handleUpdateCategoryResult( CommandState *state );
         void handleUploadTablatureResult( CommandState *state );
+        void handleDeleteResourceResult( CommandState *state );
         void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
         void directoryLoaded( QString path );

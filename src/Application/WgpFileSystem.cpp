@@ -48,6 +48,11 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	);
 
 	connect(
+		HttpRequestWorker::instance(), SIGNAL( myResourceDeleteResponseReady( CommandState* ) ),
+		this, SLOT( handleDeleteResourceResult( CommandState* ) )
+	);
+
+	connect(
 		HttpRequestWorker::instance(), SIGNAL( myTablatureUploadResponseReady( CommandState* ) ),
 		this, SLOT( handleUploadTablatureResult( CommandState* ) )
 	);
@@ -179,6 +184,7 @@ void WgpFileSystem::handleUpdateCategoryResult( CommandState *state )
 	meta->appendToLocalObjects( result );
 
 	QString categoryPath	= QString( "%1/%2" ).arg( _model->rootPath(), result["name"].toString() );
+	watcher->addPath( categoryPath );
 	meta->appendToFileSystemFiles( QString::number( result["id"].toInt() ), categoryPath );
 }
 
@@ -275,6 +281,22 @@ void WgpFileSystem::handleSharedToMeTablaturesResult( CommandState *state )
 	}
 }
 
+void WgpFileSystem::handleDeleteResourceResult( CommandState *state )
+{
+	/*
+	qDebug() << "'WgpFileSystem::handleDeleteResourceResult' Response: " << state->response;
+
+	QJsonDocument doc	= QJsonDocument::fromJson( state->response );
+	QJsonObject results	= doc.object();
+	QJsonObject data	= results.value( "data" ).toObject();
+
+	QString deletedId	= data["id"].toString();
+	*/
+
+	Q_UNUSED( state );
+	WgpMyTablatures::instance()->getMyTablatures();
+}
+
 void WgpFileSystem::serverLoadFinished()
 {
 	//qDebug() << "META DIFFERENCES \n=============================\n";
@@ -344,11 +366,16 @@ void WgpFileSystem::fileModified( QString path )
 
 void WgpFileSystem::directoryModified( QString path )
 {
-	qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
+	//qDebug() << "'WgpFileSystem::directoryModified' Path Modified: " << path;
+
 	QJsonObject metaFiles	= meta->fileSystemFiles();
+	int categoryId			= metaFiles.value( path ).toString().toInt();
 	QString categoryPath;
 	metaDifferences();
 	QFileInfo fi( path );
+
+	//qDebug() << "'WgpFileSystem::directoryModified' Path Exists: " << fi.exists();
+	//qDebug() << "'WgpFileSystem::directoryModified' Path ID: " << categoryId;
 
 	if ( reservedNames.contains( fi.fileName() ) ) {
 		return;
@@ -356,13 +383,12 @@ void WgpFileSystem::directoryModified( QString path )
 
 	if ( fi.exists() ) {
 		QDateTime lastModified		= fi.lastModified();
-		int modifiedDirectoryId	= metaFiles.value( path ).toInt();
 
-		if ( modifiedDirectoryId > 0 ) {
-			WgpMyTablatures::instance()->updateTablatureCategory( modifiedDirectoryId, fi.fileName() );
+		if ( categoryId > 0 ) {
+			WgpMyTablatures::instance()->updateTablatureCategory( categoryId, fi.fileName() );
 		}
 	} else {
-		WgpMyTablatures::instance()->deleteTablatureCategory( metaFiles.value( path ).toInt() );
+		WgpMyTablatures::instance()->deleteTablatureCategory( categoryId );
 		return;
 	}
 

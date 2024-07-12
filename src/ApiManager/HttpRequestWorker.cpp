@@ -355,8 +355,14 @@ void HttpRequestWorker::handleRequest( CommandState *state )
 	} else if( state->requestName == HttpRequests["GET_SHAREDTOMETABLATURES_REQUEST"] ) {
 		//return;
 		handleSharedToMeTablaturesResult( state );
+	} else if( state->requestName == HttpRequests["DELETE_TABLATURE_CATEGORY_REQUEST"] ) {
+		//return;
+		handleDeleteCategoryResult( state );
+	} else if( state->requestName == HttpRequests["DELETE_TABLATURE_REQUEST"] ) {
+		//return;
+		handleDeleteTablatureResult( state );
 	} else {
-		qDebug() << "UNDEFINED HTTP REQUEST !!!";
+		qDebug() << "UNDEFINED HTTP REQUEST: " << state->requestName;
 	}
 }
 
@@ -470,6 +476,30 @@ void HttpRequestWorker::handleSharedToMeTablaturesResult( CommandState *state )
 
 	if ( state->errorType == QNetworkReply::NoError ) {
 		emit sharedToMeTablaturesResponseReady( state );
+	} else {
+		errorMsg	= "Error: " + state->errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleDeleteCategoryResult( CommandState *state )
+{
+	QString errorMsg;
+
+	if ( state->errorType == QNetworkReply::NoError ) {
+		emit myResourceDeleteResponseReady( state );
+	} else {
+		errorMsg	= "Error: " + state->errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleDeleteTablatureResult( CommandState *state )
+{
+	QString errorMsg;
+
+	if ( state->errorType == QNetworkReply::NoError ) {
+		emit myResourceDeleteResponseReady( state );
 	} else {
 		errorMsg	= "Error: " + state->errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );
