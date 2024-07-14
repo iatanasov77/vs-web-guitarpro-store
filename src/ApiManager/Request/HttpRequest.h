@@ -10,9 +10,7 @@ class HttpRequest : public AbstractRequest
 
 	public:
 		HttpRequest( HttpRequestInput *input,  QObject *parent = 0 );
-
 		QNetworkRequest *createRequest();
-		QString httpAttributeEncode( QString attributeName, QString input );
 };
 
 #endif // HTTPREQUEST_H

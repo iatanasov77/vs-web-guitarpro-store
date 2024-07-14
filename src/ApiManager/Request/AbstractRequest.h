@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 #include <QNetworkRequest>
+#include <QHttpMultiPart>
+#include <QFile>
 #include "HttpRequestInput.h"
 //#include "HttpRequestWorker.h"
 
@@ -18,6 +20,10 @@ class AbstractRequest : public QObject
 		HttpRequestInput *_input;
 		QNetworkRequest *_request;
 		QByteArray _requestContent;
+		QHttpMultiPart *_multiPart;
+		QMap<QString, QFile*> _files;
+
+		QString httpAttributeEncode( QString attributeName, QString input );
 
 	public:
 		QString commandId;
@@ -28,6 +34,7 @@ class AbstractRequest : public QObject
 		QNetworkRequest *request();
 		HttpRequestInput *requestInput();
 		QByteArray requestContent();
+		QHttpMultiPart *multiPart();
 		virtual QNetworkRequest *createRequest() = 0; // pure virtual
 };
 

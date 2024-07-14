@@ -16,6 +16,7 @@
 #include "Application/VsAuth.h"
 #include "Application/VsSettings.h"
 #include "ApiManager/Request/HttpRequest.h"
+#include "ApiManager/Request/HttpRequestMultiPart.h"
 #include "ApiManager/Request/JsonRequest.h"
 #include "ApiManager/Request/DownloadRequest.h"
 
@@ -71,6 +72,8 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 		requestWrapper	= new JsonRequest( input );
 	} else if( input->requestType == REQUEST_TYPE_HTTP ) {
 		requestWrapper	= new HttpRequest( input );
+	} else if( input->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+		requestWrapper	= new HttpRequestMultiPart( input );
 	} else if( input->requestType == REQUEST_TYPE_DOWNLOAD ) {
 		requestWrapper	= new DownloadRequest( input );
 	}
@@ -106,6 +109,8 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 		requestWrapper	= new JsonRequest( input );
 	} else if( input->requestType == REQUEST_TYPE_HTTP ) {
 		requestWrapper	= new HttpRequest( input );
+	} else if( input->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+		requestWrapper	= new HttpRequestMultiPart( input );
 	} else if( input->requestType == REQUEST_TYPE_DOWNLOAD ) {
 		requestWrapper	= new DownloadRequest( input );
 	}
@@ -132,12 +137,14 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 
 	if ( ! working ) {
 		//qDebug() << "HttpRequestWorker Sending Request With Input, RequestName and Headers ...";
+		//qDebug() << "HttpRequestWorker Sending Request With Content: " << requestWrapper->requestContent();
 		_sendRequest( requestWrapper, needAuthorization );
 	}
 }
 
 void HttpRequestWorker::onManagerFinished( QNetworkReply *reply )
 {
+	qDebug() << "HttpRequestWorker::onManagerFinished Triggered ...";
 	working = false;
 	QNetworkRequest request	= reply->request();
 
@@ -167,9 +174,13 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 		if ( requestType == REQUEST_TYPE_JSON ) {
 			requestWrapper	= commandStack->object( i )->value( "request" ).value<JsonRequest*>();
 		} else if( requestType == REQUEST_TYPE_HTTP ) {
-			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();;
+			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();
+		} else if( requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequestMultiPart*>();
 		} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
 			requestWrapper	= commandStack->object( i )->value( "request" ).value<DownloadRequest*>();
+		} else {
+			return;
 		}
 
 		if ( sendNext && lastFinishedRequest != requestWrapper->commandId ) {
@@ -224,6 +235,8 @@ void HttpRequestWorker::debugCommand( QMap<QString, QVariant> command )
 		requestWrapper	= command["request"].value<HttpRequest*>();
 	} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
 		requestWrapper	= command["request"].value<DownloadRequest*>();
+	} else {
+		return;
 	}
 
 	qDebug() << "Command Stack Size: " << commandStack->size();
@@ -304,10 +317,24 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 	    _manager->get( *request );
 	}
 	else if ( input->httpMethod == "POST" ) {
-		_manager->post( *request, requestWrapper->requestContent() );
+		if( requestWrapper->requestInput()->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+			qDebug() << "MultiPart Request Sending ...";
+			QHttpMultiPart *multiPart	= requestWrapper->multiPart();
+			QNetworkReply *reply 		= _manager->post( *request, multiPart );
+			multiPart->setParent( reply ); // delete the multiPart with the reply
+		} else {
+			_manager->post( *request, requestWrapper->requestContent() );
+		}
 	}
 	else if ( input->httpMethod == "PUT" ) {
-		_manager->put( *request, requestWrapper->requestContent() );
+		if( requestWrapper->requestInput()->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+			qDebug() << "MultiPart Request Sending ...";
+			QHttpMultiPart *multiPart	= requestWrapper->multiPart();
+			QNetworkReply *reply 		= _manager->post( *request, multiPart );
+			multiPart->setParent( reply ); // delete the multiPart with the reply
+		} else {
+			_manager->put( *request, requestWrapper->requestContent() );
+		}
 	}
 	else if ( input->httpMethod == "HEAD" ) {
 		_manager->head( *request );
@@ -324,6 +351,8 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 
 void HttpRequestWorker::handleRequest( CommandState *state )
 {
+	qDebug() << "HttpRequestWorker::handleRequest Triggered ...";
+
 	if ( state->requestName == HttpRequests["LOGIN_REQUEST"] ) {
 		//return;
 		handleLoginCheck( state );
@@ -345,8 +374,17 @@ void HttpRequestWorker::handleRequest( CommandState *state )
 	} else if( state->requestName == HttpRequests["CREATE_TABLATURE_REQUEST"] || state->requestName == HttpRequests["UPDATE_TABLATURE_REQUEST"] ) {
 		//return;
 		handleUploadTablatureResult( state );
+	} else if( state->requestName == HttpRequests["GET_SHAREDTOMETABLATURES_REQUEST"] ) {
+		//return;
+		handleSharedToMeTablaturesResult( state );
+	} else if( state->requestName == HttpRequests["DELETE_TABLATURE_CATEGORY_REQUEST"] ) {
+		//return;
+		handleDeleteCategoryResult( state );
+	} else if( state->requestName == HttpRequests["DELETE_TABLATURE_REQUEST"] ) {
+		//return;
+		handleDeleteTablatureResult( state );
 	} else {
-		qDebug() << "UNDEFINED HTTP REQUEST !!!";
+		qDebug() << "UNDEFINED HTTP REQUEST: " << state->requestName;
 	}
 }
 
@@ -448,6 +486,42 @@ void HttpRequestWorker::handleUploadTablatureResult( CommandState *state )
 
 	if ( state->errorType == QNetworkReply::NoError ) {
 		emit myTablatureUploadResponseReady( state );
+	} else {
+		errorMsg	= "Error: " + state->errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleSharedToMeTablaturesResult( CommandState *state )
+{
+	QString errorMsg;
+
+	if ( state->errorType == QNetworkReply::NoError ) {
+		emit sharedToMeTablaturesResponseReady( state );
+	} else {
+		errorMsg	= "Error: " + state->errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleDeleteCategoryResult( CommandState *state )
+{
+	QString errorMsg;
+
+	if ( state->errorType == QNetworkReply::NoError ) {
+		emit myResourceDeleteResponseReady( state );
+	} else {
+		errorMsg	= "Error: " + state->errorStr;
+		QMessageBox::information( nullptr, "", errorMsg );
+	}
+}
+
+void HttpRequestWorker::handleDeleteTablatureResult( CommandState *state )
+{
+	QString errorMsg;
+
+	if ( state->errorType == QNetworkReply::NoError ) {
+		emit myResourceDeleteResponseReady( state );
 	} else {
 		errorMsg	= "Error: " + state->errorStr;
 		QMessageBox::information( nullptr, "", errorMsg );

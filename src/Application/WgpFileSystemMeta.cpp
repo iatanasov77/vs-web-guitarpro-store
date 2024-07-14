@@ -161,7 +161,7 @@ void WgpFileSystemMeta::appendToServerObjects( QJsonObject jc )
 
 	QJsonDocument document 	= loadServerObjects();
 	document.setArray( metaServerJson );
-	saveLocalObjects( document );
+	saveServerObjects( document );
 }
 
 void WgpFileSystemMeta::refreshServerObjects( QJsonObject jc )
@@ -190,9 +190,14 @@ void WgpFileSystemMeta::clearMeta()
 	}
 	*/
 
-	while( metaFileSystemFilesJson.count() ) {
-		metaFileSystemFilesJson.pop_back();
+	foreach( const QString& key, metaFileSystemFilesJson.keys() ) {
+		metaFileSystemFilesJson.remove( key );
 	}
+}
+
+QJsonObject WgpFileSystemMeta::fileSystemFiles()
+{
+	return metaFileSystemFilesJson;
 }
 
 QJsonDocument WgpFileSystemMeta::loadFileSystemFiles()
@@ -214,12 +219,12 @@ void WgpFileSystemMeta::saveFileSystemFiles( QJsonDocument document )
     jsonFile.write( document.toJson() );
 }
 
-void WgpFileSystemMeta::appendToFileSystemFiles( QString path )
+void WgpFileSystemMeta::appendToFileSystemFiles( QString id, QString path )
 {
-	metaFileSystemFilesJson.insert( metaFileSystemFilesJson.size(), QJsonValue( path ) );
+	metaFileSystemFilesJson.insert( path, QJsonValue( id ) );
 
 	QJsonDocument document 	= loadFileSystemFiles();
-	document.setArray( metaFileSystemFilesJson );
+	document.setObject( metaFileSystemFilesJson );
 	saveFileSystemFiles( document );
 }
 

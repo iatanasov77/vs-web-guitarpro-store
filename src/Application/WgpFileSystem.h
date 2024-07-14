@@ -17,6 +17,8 @@ class WgpFileSystem : public QObject
 	private:
 		static WgpFileSystem *_instance;
 		QStringList allowedMimeTypes;
+		QStringList excludePaths;
+		QStringList reservedNames;
 
 		WgpFileSystemModel *_model;
 		WgpFileIconProvider *iconProvider;
@@ -43,12 +45,15 @@ class WgpFileSystem : public QObject
         void downloadTablature( int tabId, QString originalName, QString tablaturePath );
 
     public slots:
+		void handleSharedToMeTablaturesResult( CommandState *state );
         void handleMyCategoriesResult( CommandState *state );
         void handleMyTablaturesResult( CommandState *state );
         void handleUpdateCategoryResult( CommandState *state );
         void handleUploadTablatureResult( CommandState *state );
+        void handleDeleteResourceResult( CommandState *state );
         void serverLoadFinished();
         void handleDownloadedTablature( QString targetPath );
+        void directoryLoaded( QString path );
         void fileRenamed( QString path, QString oldName, QString newName );
         void fileModified( QString path );
         void directoryModified( QString path );

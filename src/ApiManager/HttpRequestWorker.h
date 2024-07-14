@@ -36,6 +36,8 @@ class HttpRequestWorker : public QObject
 		void myTablaturesResponseReady( CommandState *state );
 		void myCategoryUpdateResponseReady( CommandState *state );
 		void myTablatureUploadResponseReady( CommandState *state );
+		void sharedToMeTablaturesResponseReady( CommandState *state );
+		void myResourceDeleteResponseReady( CommandState *state );
 
 	private:
 		static HttpRequestWorker *_instance;
@@ -68,6 +70,9 @@ class HttpRequestWorker : public QObject
 		void handleMyTablaturesUncategorizedResult( CommandState *state );
 		void handleUpdateCategoryResult( CommandState *state );
 		void handleUploadTablatureResult( CommandState *state );
+		void handleSharedToMeTablaturesResult( CommandState *state );
+		void handleDeleteCategoryResult( CommandState *state );
+		void handleDeleteTablatureResult( CommandState *state );
 
 	private slots:
 		void onManagerFinished( QNetworkReply *reply );

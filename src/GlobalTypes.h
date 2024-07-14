@@ -7,7 +7,7 @@
 
 enum FileSystemObject { OBJECT_TABLATURE, OBJECT_CATEGORY };
 enum HttpRequestVarLayout {NOT_SET, ADDRESS, URL_ENCODED, MULTIPART};
-enum HttpRequestType { REQUEST_TYPE_HTTP , REQUEST_TYPE_JSON , REQUEST_TYPE_DOWNLOAD };
+enum HttpRequestType { REQUEST_TYPE_HTTP , REQUEST_TYPE_HTTP_MULTIPART , REQUEST_TYPE_JSON , REQUEST_TYPE_DOWNLOAD };
 Q_DECLARE_METATYPE( HttpRequestType )
 
 static QMap<QString, QString> SettingsGroups {
@@ -34,7 +34,9 @@ static QMap<QString, QString> HttpRequests {
 
 	{"CREATE_TABLATURE_REQUEST", "Create Tablature Request"},
 	{"UPDATE_TABLATURE_REQUEST", "Update Tablature Request"},
-	{"DELETE_TABLATURE_REQUEST", "Delete Tablature Request"}
+	{"DELETE_TABLATURE_REQUEST", "Delete Tablature Request"},
+
+	{"GET_SHAREDTOMETABLATURES_REQUEST", "Get SharedToMeTablatures Request"}
 };
 
 #endif	// GLOBALTYPES_H

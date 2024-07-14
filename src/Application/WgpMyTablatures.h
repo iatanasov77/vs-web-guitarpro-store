@@ -36,7 +36,7 @@ class WgpMyTablatures : public QObject
         void updateTablatureCategory( int categoryId, QString $name );
         void deleteTablatureCategory( int categoryId );
 
-        void createTablature( QString $name );
+        void createTablature( QString $name, QString filePath, int categoryId );
 		void updateTablature( int tablatureId, QString $name );
 		void deleteTablature( int tablatureId );
 };
