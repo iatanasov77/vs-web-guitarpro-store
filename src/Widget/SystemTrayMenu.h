@@ -44,6 +44,7 @@ class SystemTrayMenu : public QWidget
 		void handleMyTablaturesResult( CommandState *state );
 		void handleSharedToMeTablaturesResult( CommandState *state );
 		void openWebGuitarProFolder();
+		void testFileUpload();
 };
 
 #endif // SYSTEMTRAYMENU_H

@@ -1,8 +1,9 @@
 #include "WgpMyTablatures.h"
 
+#include <QDebug>
 #include <QString>
 #include <QVariant>
-#include <QDebug>
+#include <QMimeDatabase>
 
 #include "GlobalTypes.h"
 #include "Application/VsApplication.h"
@@ -113,15 +114,20 @@ void WgpMyTablatures::deleteTablatureCategory( int categoryId )
 	HttpRequestWorker::instance()->execute( input, HttpRequests["DELETE_TABLATURE_CATEGORY_REQUEST"], headers, true );
 }
 
-void WgpMyTablatures::createTablature( QString $name )
+void WgpMyTablatures::createTablature( QString $name, QString filePath, int categoryId )
 {
 	QString strUrl			= VsApplication::instance()->apiUrl().append( "/tablatures/new" );
 	HttpRequestInput *input	= new HttpRequestInput( strUrl, "POST" );
-	input->requestType		= REQUEST_TYPE_HTTP;
+	input->requestType		= REQUEST_TYPE_HTTP_MULTIPART;
 	QMap<QString, QString> headers;
 
-	input->addVar( "parentCategory", "" );
-	input->addVar( "name", $name );
+	input->addVar( "published", "true" );
+	input->addVar( "artist", $name );
+	input->addVar( "song", $name );
+	input->addVar( "category", QString::number( categoryId ) );
+
+	QString mimeType = QMimeDatabase().mimeTypeForFile( filePath ).name();
+	input->addFile( filePath, "tablature", mimeType );
 
 	HttpRequestWorker::instance()->execute( input, HttpRequests["CREATE_TABLATURE_REQUEST"], headers, true );
 }
@@ -133,8 +139,9 @@ void WgpMyTablatures::updateTablature( int tablatureId, QString $name )
 	input->requestType		= REQUEST_TYPE_HTTP;
 	QMap<QString, QString> headers;
 
-	input->addVar( "parentCategory", "" );
-	input->addVar( "name", $name );
+	input->addVar( "published", "true" );
+	input->addVar( "artist", $name );
+	input->addVar( "song", $name );
 
 	HttpRequestWorker::instance()->execute( input, HttpRequests["UPDATE_TABLATURE_REQUEST"], headers, true );
 }

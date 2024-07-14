@@ -17,7 +17,7 @@ class WgpFileSystem : public QObject
 	private:
 		static WgpFileSystem *_instance;
 		QStringList allowedMimeTypes;
-		QString excludePath;
+		QStringList excludePaths;
 		QStringList reservedNames;
 
 		WgpFileSystemModel *_model;

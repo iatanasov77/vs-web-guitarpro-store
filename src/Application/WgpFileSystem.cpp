@@ -22,8 +22,11 @@ WgpFileSystem::WgpFileSystem( QObject *parent ) : QObject( parent )
 	createModel();
 
 	allowedMimeTypes 	= QStringList{ "application/gpx+xml", "application/octet-stream" };
-	excludePath			= QString( "%1/%2" ).arg( _model->rootPath(), "Shared To Me Tablatures" );
-	reservedNames << excludePath << "Shared To Me Tablatures";
+
+	QString sharedToMe	= QString( "%1/%2" ).arg( _model->rootPath(), "Shared To Me Tablatures" );
+	QString testUpload	= QString( "%1/%2" ).arg( _model->rootPath(), "Test Upload" );
+	excludePaths << sharedToMe << testUpload;
+	reservedNames << testUpload << "Test Upload" << sharedToMe << "Shared To Me Tablatures";
 
 	//fixLocalMetaObjects();
 
@@ -327,7 +330,7 @@ void WgpFileSystem::handleDownloadedTablature( QString targetPath )
 void WgpFileSystem::directoryLoaded( QString path )
 {
 	qDebug() << "'WgpFileSystem::directoryLoaded' Path: " << path;
-	if ( path == _model->rootPath() || path.startsWith( excludePath ) ) {
+	if ( path == _model->rootPath() || path.startsWith( excludePaths[0] ) || path.startsWith( excludePaths[1] ) ) {
 		return;
 	}
 
@@ -335,6 +338,27 @@ void WgpFileSystem::directoryLoaded( QString path )
 	if ( ! existingFiles.keys().contains( path ) ) {
 		QDir dir	= QDir( path );
 		WgpMyTablatures::instance()->createTablatureCategory( dir.dirName() );
+	} else {
+		QModelIndex parentIndex	= _model->index( path );
+		int numRows 			= _model->rowCount( parentIndex );
+
+		for ( int row = 0; row < numRows; ++row ) {
+		    QModelIndex childIndex	= _model->index( row, 0, parentIndex );
+		    QString subPath 		= _model->data( childIndex ).toString();
+
+		    if ( ! existingFiles.keys().contains( subPath ) ) {
+		    	QFileInfo fi( subPath );
+		    	if ( fi.isDir() ) {
+
+		    	} else {
+		    		QString categoryPath	= fi.path();
+		    		QJsonObject metaFiles	= meta->fileSystemFiles();
+		    		int categoryId			= metaFiles.value( categoryPath ).toString().toInt();
+
+		    		WgpMyTablatures::instance()->createTablature( fi.baseName(), subPath, categoryId );
+		    	}
+		    }
+		}
 	}
 }
 
@@ -357,9 +381,16 @@ void WgpFileSystem::fileModified( QString path )
 	//qDebug() << "Mime type:" << mimeType;
 	if ( allowedMimeTypes.contains( mimeType ) ) {
 		if ( fi.exists() ) {
+			qDebug() << "'WgpFileSystem::fileModified' Update Tablature: " << path;
 			//WgpMyTablatures::instance()->updateTablature( metaFiles.value( path ).toInt(), path );
 		} else {
-			//WgpMyTablatures::instance()->createTablature( path );
+			qDebug() << "'WgpFileSystem::fileModified' Create Tablature: " << path;
+
+			QString categoryPath	= fi.path();
+			QJsonObject metaFiles	= meta->fileSystemFiles();
+			int categoryId			= metaFiles.value( categoryPath ).toString().toInt();
+
+			WgpMyTablatures::instance()->createTablature( fi.baseName(), path, categoryId );
 		}
 	}
 }
@@ -450,7 +481,7 @@ QStringList WgpFileSystem::findNewCategories( QString path )
 		QString categoryPath = it.next();
 		//qDebug() << "'WgpFileSystem::fixLocalObjects' Category Path: " << categoryPath;
 
-		if ( categoryPath.startsWith( excludePath ) ) {
+		if ( categoryPath.startsWith( excludePaths[0] ) || categoryPath.startsWith( excludePaths[1] ) ) {
 			continue;
 		}
 

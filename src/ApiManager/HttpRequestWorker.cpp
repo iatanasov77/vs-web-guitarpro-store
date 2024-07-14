@@ -16,6 +16,7 @@
 #include "Application/VsAuth.h"
 #include "Application/VsSettings.h"
 #include "ApiManager/Request/HttpRequest.h"
+#include "ApiManager/Request/HttpRequestMultiPart.h"
 #include "ApiManager/Request/JsonRequest.h"
 #include "ApiManager/Request/DownloadRequest.h"
 
@@ -71,6 +72,8 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 		requestWrapper	= new JsonRequest( input );
 	} else if( input->requestType == REQUEST_TYPE_HTTP ) {
 		requestWrapper	= new HttpRequest( input );
+	} else if( input->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+		requestWrapper	= new HttpRequestMultiPart( input );
 	} else if( input->requestType == REQUEST_TYPE_DOWNLOAD ) {
 		requestWrapper	= new DownloadRequest( input );
 	}
@@ -106,6 +109,8 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 		requestWrapper	= new JsonRequest( input );
 	} else if( input->requestType == REQUEST_TYPE_HTTP ) {
 		requestWrapper	= new HttpRequest( input );
+	} else if( input->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+		requestWrapper	= new HttpRequestMultiPart( input );
 	} else if( input->requestType == REQUEST_TYPE_DOWNLOAD ) {
 		requestWrapper	= new DownloadRequest( input );
 	}
@@ -132,6 +137,7 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 
 	if ( ! working ) {
 		//qDebug() << "HttpRequestWorker Sending Request With Input, RequestName and Headers ...";
+		//qDebug() << "HttpRequestWorker Sending Request With Content: " << requestWrapper->requestContent();
 		_sendRequest( requestWrapper, needAuthorization );
 	}
 }
@@ -168,7 +174,9 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 		if ( requestType == REQUEST_TYPE_JSON ) {
 			requestWrapper	= commandStack->object( i )->value( "request" ).value<JsonRequest*>();
 		} else if( requestType == REQUEST_TYPE_HTTP ) {
-			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();;
+			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();
+		} else if( requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequestMultiPart*>();
 		} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
 			requestWrapper	= commandStack->object( i )->value( "request" ).value<DownloadRequest*>();
 		} else {
@@ -309,10 +317,24 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 	    _manager->get( *request );
 	}
 	else if ( input->httpMethod == "POST" ) {
-		_manager->post( *request, requestWrapper->requestContent() );
+		if( requestWrapper->requestInput()->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+			qDebug() << "MultiPart Request Sending ...";
+			QHttpMultiPart *multiPart	= requestWrapper->multiPart();
+			QNetworkReply *reply 		= _manager->post( *request, multiPart );
+			multiPart->setParent( reply ); // delete the multiPart with the reply
+		} else {
+			_manager->post( *request, requestWrapper->requestContent() );
+		}
 	}
 	else if ( input->httpMethod == "PUT" ) {
-		_manager->put( *request, requestWrapper->requestContent() );
+		if( requestWrapper->requestInput()->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+			qDebug() << "MultiPart Request Sending ...";
+			QHttpMultiPart *multiPart	= requestWrapper->multiPart();
+			QNetworkReply *reply 		= _manager->post( *request, multiPart );
+			multiPart->setParent( reply ); // delete the multiPart with the reply
+		} else {
+			_manager->put( *request, requestWrapper->requestContent() );
+		}
 	}
 	else if ( input->httpMethod == "HEAD" ) {
 		_manager->head( *request );

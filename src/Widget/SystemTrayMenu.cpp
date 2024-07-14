@@ -84,8 +84,17 @@ void SystemTrayMenu::loginToWebGuitarPro()
 
 void SystemTrayMenu::_createToolBar()
 {
+	#ifdef QT_DEBUG
+		QAction *testFileUploadAct = new QAction( tr("&Test File Upload" ), this );
+		connect( testFileUploadAct, SIGNAL( triggered() ), this, SLOT( testFileUpload() ) );
+
+		QToolButton *testFileUploadButton = new QToolButton( toolBar );
+		testFileUploadButton->setDefaultAction( testFileUploadAct );
+		testFileUploadButton->setIcon( QIcon( ":/Resources/icons/guitarpro.png" ) );
+		toolBar->addWidget( testFileUploadButton  );
+	#endif
+
 	QAction *openFolderAct = new QAction( tr("&Open WebGuitarPro Folder" ), this );
-	//openFolderAct->setStatusTip( tr( "Open WebGuitarPro Folder" ) );
 	connect( openFolderAct, SIGNAL( triggered() ), this, SLOT( openWebGuitarProFolder() ) );
 
 	QToolButton *folderButton	= new QToolButton( toolBar );
@@ -342,4 +351,11 @@ void SystemTrayMenu::openWebGuitarProFolder()
 	//qDebug() << WebGuitarProFolder;
 
 	QDesktopServices::openUrl( QUrl::fromLocalFile( WebGuitarProFolder ) );
+}
+
+void SystemTrayMenu::testFileUpload()
+{
+	QString testTablature	= "C:/Users/ghzUser/WebGuitarPro/Test Upload/Hypocrisy - Rosewell 47.gp3";
+
+	WgpMyTablatures::instance()->createTablature( "Test Tablature", testTablature, 64 );
 }
