@@ -1,3 +1,17 @@
+0.6.1	|	Release date: **14.07.2024**
+============================================
+* New Features:
+  - Add InstallBuilder Config.
+  - Handle SharedToMe Tablatures From API.
+  - Delete Tablature Category is Done.
+  - Add Test Tablatures in Docs Folder.
+  - Create a MultiPart ApiManager Request Class.
+* Bug-Fixes:
+  - Fix Some Compiler Warnings.
+  - Fixing FileSystem Watcher to Ignore SharedToMe Tablatures Folder.
+  - Fixing Update Meta Data on New Category Created.
+
+
 0.6.0	|	Release date: **10.07.2024**
 ============================================
 * New Features and Improvements:
