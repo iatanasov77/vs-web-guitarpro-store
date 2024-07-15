@@ -74,14 +74,14 @@ void WgpMyTablatures::_getMyTablaturesUncategorized()
 	HttpRequestWorker::instance()->execute( input, HttpRequests["GET_MYTABLATURESUNCATEGORIZED_REQUEST"], headers, true );
 }
 
-void WgpMyTablatures::createTablatureCategory( QString $name )
+void WgpMyTablatures::createTablatureCategory( QString $name, int parentId )
 {
 	QString strUrl			= VsApplication::instance()->apiUrl().append( "/my-categories/new" );
 	HttpRequestInput *input	= new HttpRequestInput( strUrl, "POST" );
 	input->requestType		= REQUEST_TYPE_JSON;
 	QMap<QString, QString> headers;
 
-	input->addVar( "parentCategory", "" );
+	input->addVar( "parentCategory", QString::number( parentId ) );
 	input->addVar( "name", $name );
 
 	HttpRequestWorker::instance()->execute( input, HttpRequests["CREATE_TABLATURE_CATEGORY_REQUEST"], headers, true );
@@ -132,16 +132,19 @@ void WgpMyTablatures::createTablature( QString $name, QString filePath, int cate
 	HttpRequestWorker::instance()->execute( input, HttpRequests["CREATE_TABLATURE_REQUEST"], headers, true );
 }
 
-void WgpMyTablatures::updateTablature( int tablatureId, QString $name )
+void WgpMyTablatures::updateTablature( int tablatureId, QString $name, QString filePath )
 {
 	QString strUrl			= VsApplication::instance()->apiUrl().append( QString( "/tablatures/%1" ).arg( tablatureId ) );
 	HttpRequestInput *input	= new HttpRequestInput( strUrl, "PUT" );
-	input->requestType		= REQUEST_TYPE_HTTP;
+	input->requestType		= REQUEST_TYPE_HTTP_MULTIPART;
 	QMap<QString, QString> headers;
 
 	input->addVar( "published", "true" );
 	input->addVar( "artist", $name );
 	input->addVar( "song", $name );
+
+	QString mimeType = QMimeDatabase().mimeTypeForFile( filePath ).name();
+	input->addFile( filePath, "tablature", mimeType );
 
 	HttpRequestWorker::instance()->execute( input, HttpRequests["UPDATE_TABLATURE_REQUEST"], headers, true );
 }

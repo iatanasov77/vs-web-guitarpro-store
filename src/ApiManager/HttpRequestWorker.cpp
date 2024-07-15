@@ -330,7 +330,7 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 		if( requestWrapper->requestInput()->requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
 			qDebug() << "MultiPart Request Sending ...";
 			QHttpMultiPart *multiPart	= requestWrapper->multiPart();
-			QNetworkReply *reply 		= _manager->post( *request, multiPart );
+			QNetworkReply *reply 		= _manager->put( *request, multiPart );
 			multiPart->setParent( reply ); // delete the multiPart with the reply
 		} else {
 			_manager->put( *request, requestWrapper->requestContent() );
