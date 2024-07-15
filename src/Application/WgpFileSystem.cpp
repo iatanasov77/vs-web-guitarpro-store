@@ -336,25 +336,26 @@ void WgpFileSystem::directoryLoaded( QString path )
 
 	QJsonObject existingFiles	= meta->fileSystemFiles();
 	if ( ! existingFiles.keys().contains( path ) ) {
-		QDir dir	= QDir( path );
-		WgpMyTablatures::instance()->createTablatureCategory( dir.dirName() );
+		QDir dir		= QDir( path );
+		int parentId	= existingFiles.value( dir.path() ).toString().toInt();
+		WgpMyTablatures::instance()->createTablatureCategory( dir.dirName(), parentId );
 	} else {
 		QModelIndex parentIndex	= _model->index( path );
 		int numRows 			= _model->rowCount( parentIndex );
 
 		for ( int row = 0; row < numRows; ++row ) {
 		    QModelIndex childIndex	= _model->index( row, 0, parentIndex );
-		    QString subPath 		= _model->data( childIndex ).toString();
+		    QString subPath 		= QString( "%1/%2" ).arg( path, _model->data( childIndex ).toString() );
 
+		    //qDebug() << "'WgpFileSystem::directoryLoaded' Sub-Path: " << subPath;
 		    if ( ! existingFiles.keys().contains( subPath ) ) {
 		    	QFileInfo fi( subPath );
+		    	QString categoryPath	= fi.path();
+				int categoryId			= existingFiles.value( categoryPath ).toString().toInt();
+
 		    	if ( fi.isDir() ) {
-
+		    		WgpMyTablatures::instance()->createTablatureCategory( fi.baseName(), categoryId );
 		    	} else {
-		    		QString categoryPath	= fi.path();
-		    		QJsonObject metaFiles	= meta->fileSystemFiles();
-		    		int categoryId			= metaFiles.value( categoryPath ).toString().toInt();
-
 		    		WgpMyTablatures::instance()->createTablature( fi.baseName(), subPath, categoryId );
 		    	}
 		    }
@@ -380,16 +381,16 @@ void WgpFileSystem::fileModified( QString path )
 	QString mimeType		= QMimeDatabase().mimeTypeForFile( path ).name();
 	//qDebug() << "Mime type:" << mimeType;
 	if ( allowedMimeTypes.contains( mimeType ) ) {
+		QString categoryPath	= fi.path();
+		QJsonObject metaFiles	= meta->fileSystemFiles();
+		int categoryId			= metaFiles.value( categoryPath ).toString().toInt();
+
 		if ( fi.exists() ) {
 			qDebug() << "'WgpFileSystem::fileModified' Update Tablature: " << path;
-			//WgpMyTablatures::instance()->updateTablature( metaFiles.value( path ).toInt(), path );
+			int tablatureId	= metaFiles.value( path ).toString().toInt();
+			WgpMyTablatures::instance()->updateTablature( tablatureId, fi.baseName(), path );
 		} else {
 			qDebug() << "'WgpFileSystem::fileModified' Create Tablature: " << path;
-
-			QString categoryPath	= fi.path();
-			QJsonObject metaFiles	= meta->fileSystemFiles();
-			int categoryId			= metaFiles.value( categoryPath ).toString().toInt();
-
 			WgpMyTablatures::instance()->createTablature( fi.baseName(), path, categoryId );
 		}
 	}
@@ -427,7 +428,7 @@ void WgpFileSystem::directoryModified( QString path )
 	for ( int i = 0; i < newCategories.size(); ++i ) {
 		qDebug() << "'WgpFileSystem::directoryModified' Creating New Category ...";
 
-		WgpMyTablatures::instance()->createTablatureCategory( newCategories[i] );
+		WgpMyTablatures::instance()->createTablatureCategory( newCategories[i], 0 );
 
 		categoryPath	= QString( "%1/%2" ).arg( path, newCategories[i] );
 		watcher->addPath( categoryPath );

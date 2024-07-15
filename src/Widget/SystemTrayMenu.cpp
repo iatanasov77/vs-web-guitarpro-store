@@ -84,6 +84,7 @@ void SystemTrayMenu::loginToWebGuitarPro()
 
 void SystemTrayMenu::_createToolBar()
 {
+	/*
 	#ifdef QT_DEBUG
 		QAction *testFileUploadAct = new QAction( tr("&Test File Upload" ), this );
 		connect( testFileUploadAct, SIGNAL( triggered() ), this, SLOT( testFileUpload() ) );
@@ -93,6 +94,7 @@ void SystemTrayMenu::_createToolBar()
 		testFileUploadButton->setIcon( QIcon( ":/Resources/icons/guitarpro.png" ) );
 		toolBar->addWidget( testFileUploadButton  );
 	#endif
+	*/
 
 	QAction *openFolderAct = new QAction( tr("&Open WebGuitarPro Folder" ), this );
 	connect( openFolderAct, SIGNAL( triggered() ), this, SLOT( openWebGuitarProFolder() ) );
