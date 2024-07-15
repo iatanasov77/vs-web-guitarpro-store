@@ -1,3 +1,10 @@
+1.0.0	|	Release date: **15.07.2024**
+============================================
+* Bug-Fixes and Improvements:
+  - Fixing and Improve New Category and New Tablature Slots.
+  - Make When to Delete a Tablature.
+
+
 0.6.1	|	Release date: **14.07.2024**
 ============================================
 * New Features:
