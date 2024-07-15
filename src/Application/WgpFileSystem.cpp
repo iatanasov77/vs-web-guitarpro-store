@@ -383,15 +383,21 @@ void WgpFileSystem::fileModified( QString path )
 	if ( allowedMimeTypes.contains( mimeType ) ) {
 		QString categoryPath	= fi.path();
 		QJsonObject metaFiles	= meta->fileSystemFiles();
-		int categoryId			= metaFiles.value( categoryPath ).toString().toInt();
+		int tablatureId			= metaFiles.value( path ).toString().toInt();
 
 		if ( fi.exists() ) {
 			qDebug() << "'WgpFileSystem::fileModified' Update Tablature: " << path;
-			int tablatureId	= metaFiles.value( path ).toString().toInt();
 			WgpMyTablatures::instance()->updateTablature( tablatureId, fi.baseName(), path );
 		} else {
-			qDebug() << "'WgpFileSystem::fileModified' Create Tablature: " << path;
-			WgpMyTablatures::instance()->createTablature( fi.baseName(), path, categoryId );
+			/**
+			 * THIS IS TRIGGERED WHEN DELETE TABLATURE
+			 */
+
+//			qDebug() << "'WgpFileSystem::fileModified' Create Tablature: " << path;
+//			WgpMyTablatures::instance()->createTablature( fi.baseName(), path, categoryId );
+
+			qDebug() << "'WgpFileSystem::fileModified' Delete Tablature: " << path;
+			WgpMyTablatures::instance()->deleteTablature( tablatureId );
 		}
 	}
 }
