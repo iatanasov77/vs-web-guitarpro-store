@@ -46,7 +46,13 @@ void SettingsWidgetGeneral::init()
 
 void SettingsWidgetGeneral::apply()
 {
-	VsSettings::instance()->setValue( "runOnStartup", ui->chkStartup->checkState(), "General" );
+	int runOnStartup	= ui->chkStartup->checkState();
+	VsSettings::instance()->setValue( "runOnStartup", runOnStartup, "General" );
+	if ( runOnStartup && runOnStartup == Qt::Checked ) {
+		VsApplication::instance()->makeStartupApp();
+	} else {
+		VsApplication::instance()->removeStartupApp();
+	}
 
 	int idx						= ui->cmbLanguage->currentIndex();
 	QString	selectedLanguage	= ui->cmbLanguage->itemData( idx ).toString();

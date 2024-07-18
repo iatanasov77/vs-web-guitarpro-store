@@ -33,6 +33,7 @@ class VsApplication
 		QString appAboutBody();
 
 		void makeStartupApp();
+		void removeStartupApp();
 		QString apiUrl();
 };
 

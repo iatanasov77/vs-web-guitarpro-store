@@ -158,19 +158,27 @@ QString VsApplication::appAboutBody()
 
 void VsApplication::makeStartupApp()
 {
-	qDebug() << "App path : " << QCoreApplication::applicationDirPath();
-
-	/*
-	QString appName = "app.exe";
-	QString appNameLink = appName+".lnk";
+	//qDebug() << "App path : " << QCoreApplication::applicationFilePath();
+	QString appName 	= QCoreApplication::applicationFilePath();
+	QString appNameLink	= QString( "%1.lnk" ).arg( QCoreApplication::applicationName() );
 	QFile::link( appName, appNameLink );
 
-	QString userName = QDir::home().dirName();
+	QString dirStartup 	= QString( "C:/Users/%1/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/%2" )
+								.arg( QDir::home().dirName(), appNameLink );
 
-	QString dir_startup = "C:/Users/" + userName +
-			"/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/"+ appNameLink;
-	QFile::copy(appNameLink, dir_startup);
-	*/
+	QFile::copy( appNameLink, dirStartup );
+}
+
+void VsApplication::removeStartupApp()
+{
+	QString appNameLink	= QString( "%1.lnk" ).arg( QCoreApplication::applicationName() );
+	QString dirStartup 	= QString( "C:/Users/%1/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/%2" )
+								.arg( QDir::home().dirName(), appNameLink );
+
+	QFile file( dirStartup );
+	if ( file.exists() ) {
+		file.remove();
+	}
 }
 
 QString VsApplication::apiUrl()
