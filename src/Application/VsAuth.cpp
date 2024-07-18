@@ -34,13 +34,21 @@ VsAuth *VsAuth::instance()
 	return _instance;
 }
 
-bool VsAuth::isLoggedIn()
+bool VsAuth::hasValidToken()
 {
 	VsSettings *oSettings	= VsSettings::instance();
 	QVariant authExpireTime	= oSettings->value( SettingsKeys["AUTH_PAYLOAD"], SettingsGroups["authentication"] ).toHash().value( "tokenExpired" );
 	bool tokenNotExpired	= QDateTime::currentSecsSinceEpoch() <= authExpireTime.toInt();
 
-	if ( ! tokenNotExpired ) {
+	return tokenNotExpired;
+}
+
+bool VsAuth::isLoggedIn()
+{
+	bool validToken	= hasValidToken();
+
+	if ( ! validToken ) {
+		VsSettings *oSettings	= VsSettings::instance();
 		QString refreshToken	= oSettings->value( SettingsKeys["REFRESH_TOKEN"], SettingsGroups["authentication"] ).toString();
 		if ( ! refreshToken.isEmpty() ) {
 			refreshAuthToken( refreshToken );
@@ -48,7 +56,7 @@ bool VsAuth::isLoggedIn()
 		}
 	}
 
-	return tokenNotExpired;
+	return validToken;
 }
 
 bool VsAuth::login( QString username, QString password )

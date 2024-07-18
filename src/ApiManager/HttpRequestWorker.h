@@ -44,7 +44,7 @@ class HttpRequestWorker : public QObject
 
 		QNetworkAccessManager *_manager;
 		QMap<QString, CommandState*> commandState;
-		QCache<int, QMap<QString, QVariant>> *commandStack;
+		QCache<QString, QMap<QString, QVariant>> *commandStack;
 		bool working;
 		QString currentCommandId;
 		QString lastFinishedRequest;
@@ -54,6 +54,7 @@ class HttpRequestWorker : public QObject
 		static HttpRequestWorker* createInstance();
 
 		QString generateCommandId() const;
+		AbstractRequest *getRequest( QString commandId );
 		void _authorizeRequest( QNetworkRequest *request );
 		void _sendRequest( AbstractRequest *requestWrapper, bool needAuthorization );
 		void debugNetworkReply( QNetworkReply *reply );
