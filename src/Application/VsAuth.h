@@ -25,8 +25,10 @@ class VsAuth : public QObject
 	public:
         static VsAuth *instance();
 
+        bool hasValidToken();
         bool isLoggedIn();
         bool login( QString username, QString password );
+        bool refreshAuthToken( QString refreshToken );
         void logout();
         QString userFullName();
 

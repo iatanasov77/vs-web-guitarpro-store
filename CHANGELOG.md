@@ -1,3 +1,13 @@
+1.0.1	|	Release date: **18.07.2024**
+============================================
+* New Features and Improvements:
+  - Create a Settings Widget and Add it to SystemTray Profile Menu.
+  - Handle Run On Startup Setting.
+  - Use API Refresh Tokens.
+  - Add Icons in All Profile Menu Actions.
+  - Improve API Request Authorization.
+
+
 1.0.0	|	Release date: **15.07.2024**
 ============================================
 * Bug-Fixes and Improvements:

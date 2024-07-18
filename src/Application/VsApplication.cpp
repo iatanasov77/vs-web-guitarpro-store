@@ -156,6 +156,31 @@ QString VsApplication::appAboutBody()
 	return data;
 }
 
+void VsApplication::makeStartupApp()
+{
+	//qDebug() << "App path : " << QCoreApplication::applicationFilePath();
+	QString appName 	= QCoreApplication::applicationFilePath();
+	QString appNameLink	= QString( "%1.lnk" ).arg( QCoreApplication::applicationName() );
+	QFile::link( appName, appNameLink );
+
+	QString dirStartup 	= QString( "C:/Users/%1/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/%2" )
+								.arg( QDir::home().dirName(), appNameLink );
+
+	QFile::copy( appNameLink, dirStartup );
+}
+
+void VsApplication::removeStartupApp()
+{
+	QString appNameLink	= QString( "%1.lnk" ).arg( QCoreApplication::applicationName() );
+	QString dirStartup 	= QString( "C:/Users/%1/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/%2" )
+								.arg( QDir::home().dirName(), appNameLink );
+
+	QFile file( dirStartup );
+	if ( file.exists() ) {
+		file.remove();
+	}
+}
+
 QString VsApplication::apiUrl()
 {
 	return m_apiUrl;

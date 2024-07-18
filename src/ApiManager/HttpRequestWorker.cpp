@@ -29,7 +29,7 @@ HttpRequestWorker *HttpRequestWorker::_instance = 0;
 
 HttpRequestWorker::HttpRequestWorker( QObject *parent ) : QObject( parent )
 {
-	commandStack = new QCache<int, QMap<QString, QVariant>>();
+	commandStack = new QCache<QString, QMap<QString, QVariant>>();
 
     _manager = new QNetworkAccessManager( this );
     connect(
@@ -90,7 +90,7 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 
 	//debugCommand( *command );
 	commandState[commandId]	= state;
-	commandStack->insert( commandStack->size(), command );
+	commandStack->insert( commandId, command );
 	//debugCommandStack();
 
 	if ( ! working ) {
@@ -132,7 +132,7 @@ void HttpRequestWorker::execute( HttpRequestInput *input, QString strRequestName
 
 	//debugCommand( *command );
 	commandState[commandId]	= state;
-	commandStack->insert( commandStack->size(), command );
+	commandStack->insert( commandId, command );
 	//debugCommandStack();
 
 	if ( ! working ) {
@@ -165,21 +165,11 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 {
 	bool sendNext = false;
 	AbstractRequest *requestWrapper;
-	HttpRequestType requestType;
 
 	//debugCommandStack();
-	for ( int i = 0; i < commandStack->size(); ++i ) {
-		requestType		= commandStack->object( i )->value( "requestType" ).value<HttpRequestType>();
-
-		if ( requestType == REQUEST_TYPE_JSON ) {
-			requestWrapper	= commandStack->object( i )->value( "request" ).value<JsonRequest*>();
-		} else if( requestType == REQUEST_TYPE_HTTP ) {
-			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequest*>();
-		} else if( requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
-			requestWrapper	= commandStack->object( i )->value( "request" ).value<HttpRequestMultiPart*>();
-		} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
-			requestWrapper	= commandStack->object( i )->value( "request" ).value<DownloadRequest*>();
-		} else {
+	foreach( const QString& key, commandStack->keys() ) {
+		requestWrapper	= getRequest( key );
+		if ( ! requestWrapper ) {
 			return;
 		}
 
@@ -191,11 +181,11 @@ void HttpRequestWorker::sendNextRequest( CommandState *state )
 
 		//qDebug() << "Worker Request Name: " << state.requestName;
 		if ( requestWrapper && requestWrapper->commandId == state->commandId ) {
-			commandStack->object( i )->insert( "executed", QVariant( true ) );
+			commandStack->object( key )->insert( "executed", QVariant( true ) );
 			sendNext 			= true;
 			lastFinishedRequest = state->commandId;
 
-			//qDebug() << "Current Request Executed: " << commandStack->object( i )->value( "executed" ).toBool();
+			//qDebug() << "Current Request Executed: " << commandStack->object( key )->value( "executed" ).toBool();
 			//qDebug() << "Last Finished Request: " << lastFinishedRequest;
 		}
 	}
@@ -226,16 +216,10 @@ void HttpRequestWorker::debugNetworkReplyResponse( QString debugFrom, QByteArray
 
 void HttpRequestWorker::debugCommand( QMap<QString, QVariant> command )
 {
-	AbstractRequest *requestWrapper;
-	HttpRequestType requestType	= command["requestType"].value<HttpRequestType>();
+	QString commandId	= command["commandId"].toString();
+	AbstractRequest *requestWrapper	= getRequest( commandId );
 
-	if ( requestType == REQUEST_TYPE_JSON ) {
-		requestWrapper	= command["request"].value<JsonRequest*>();
-	} else if( requestType == REQUEST_TYPE_HTTP ) {
-		requestWrapper	= command["request"].value<HttpRequest*>();
-	} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
-		requestWrapper	= command["request"].value<DownloadRequest*>();
-	} else {
+	if ( ! requestWrapper ) {
 		return;
 	}
 
@@ -244,7 +228,6 @@ void HttpRequestWorker::debugCommand( QMap<QString, QVariant> command )
 	//qDebug() << "Command Stack Command Size: " << sizeof( command );
 
 	qDebug() << "Wrapper Request: " << requestWrapper;
-	qDebug() << "Wrapper Request Type: " << requestType;
 	qDebug() << "Wrapper Request Name: " << requestWrapper->requestName;
 	qDebug() << "Wrapper Command ID: " << requestWrapper->commandId;
 }
@@ -253,8 +236,8 @@ void HttpRequestWorker::debugCommandStack()
 {
 	QMap<QString, QVariant> *command;
 
-	for ( int i = 0; i < commandStack->size(); ++i ) {
-		command	= commandStack->object( i );
+	foreach( const QString& key, commandStack->keys() ) {
+		command	= commandStack->object( key );
 		debugCommand( *command );
 	}
 }
@@ -279,15 +262,26 @@ void HttpRequestWorker::debugAuthorizationSettings()
 
 void HttpRequestWorker::_authorizeRequest( QNetworkRequest *request )
 {
-	QString authorizationHeaderKey		= "Authorization";
-	VsSettings *oSettings				= VsSettings::instance();
-	QVariant authToken					= oSettings->value(
-		SettingsKeys["AUTH_PAYLOAD"],
-		SettingsGroups["authentication"]
-	).toHash().value( "token" );
+	VsSettings *oSettings	= VsSettings::instance();
 
-	QString authorizationHeaderValue	= QString( "Bearer " ).append( authToken.toString() );
-	request->setRawHeader( authorizationHeaderKey.toUtf8(), authorizationHeaderValue.toUtf8() );
+	if ( VsAuth::instance()->hasValidToken() ) {
+		QString authorizationHeaderKey		= "Authorization";
+		QVariant authToken					= oSettings->value(
+			SettingsKeys["AUTH_PAYLOAD"],
+			SettingsGroups["authentication"]
+		).toHash().value( "token" );
+
+		QString authorizationHeaderValue	= QString( "Bearer " ).append( authToken.toString() );
+		request->setRawHeader( authorizationHeaderKey.toUtf8(), authorizationHeaderValue.toUtf8() );
+	} else {
+		working = false;
+		AbstractRequest *requestWrapper	= getRequest( currentCommandId );
+		QString refreshToken	= oSettings->value( SettingsKeys["REFRESH_TOKEN"], SettingsGroups["authentication"] ).toString();
+
+		commandStack->clear();
+		VsAuth::instance()->refreshAuthToken( refreshToken );
+		_sendRequest( requestWrapper, true );
+	}
 }
 
 void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool needAuthorization )
@@ -304,14 +298,6 @@ void HttpRequestWorker::_sendRequest( AbstractRequest *requestWrapper, bool need
 	if ( needAuthorization ) {
 		_authorizeRequest( request );
 	}
-
-	/*
-	if ( requestWrapper->requestName == HttpRequests["DOWNLOAD_TABLATURE_REQUEST"] ) {
-		debugRequest( request );
-		debugAuthorizationSettings();
-		return;
-	}
-	*/
 
 	if ( input->httpMethod == "GET" ) {
 	    _manager->get( *request );
@@ -353,7 +339,7 @@ void HttpRequestWorker::handleRequest( CommandState *state )
 {
 	qDebug() << "HttpRequestWorker::handleRequest Triggered ...";
 
-	if ( state->requestName == HttpRequests["LOGIN_REQUEST"] ) {
+	if ( state->requestName == HttpRequests["LOGIN_REQUEST"] || state->requestName == HttpRequests["REFRESH_TOKEN_REQUEST"] ) {
 		//return;
 		handleLoginCheck( state );
 	} else if( state->requestName == HttpRequests["DOWNLOAD_TABLATURE_REQUEST"] ) {
@@ -548,4 +534,24 @@ QString HttpRequestWorker::generateCommandId() const
    }
 
    return randomString;
+}
+
+AbstractRequest *HttpRequestWorker::getRequest( QString commandId )
+{
+	AbstractRequest *requestWrapper;
+	HttpRequestType requestType	= commandStack->object( commandId )->value( "requestType" ).value<HttpRequestType>();
+
+	if ( requestType == REQUEST_TYPE_JSON ) {
+		requestWrapper	= commandStack->object( commandId )->value( "request" ).value<JsonRequest*>();
+	} else if( requestType == REQUEST_TYPE_HTTP ) {
+		requestWrapper	= commandStack->object( commandId )->value( "request" ).value<HttpRequest*>();
+	} else if( requestType == REQUEST_TYPE_HTTP_MULTIPART ) {
+		requestWrapper	= commandStack->object( commandId )->value( "request" ).value<HttpRequestMultiPart*>();
+	} else if( requestType == REQUEST_TYPE_DOWNLOAD ) {
+		requestWrapper	= commandStack->object( commandId )->value( "request" ).value<DownloadRequest*>();
+	} else {
+		qDebug() << "Undefined Request Type !!!";
+	}
+
+	return requestWrapper;
 }

@@ -32,6 +32,8 @@ class VsApplication
 		void loadLanguage( const QLocale& locale );
 		QString appAboutBody();
 
+		void makeStartupApp();
+		void removeStartupApp();
 		QString apiUrl();
 };
 
