@@ -7,5 +7,8 @@
 		<file>Resources/icons/folder.png</file>
 		<file>Resources/icons/Symbol_NO.svg</file>
 		<file>Resources/icons/Symbol_OK.svg</file>
+		<file>Resources/icons/settings.svg</file>
+		
+		<file>Resources/settings_menu/menu.xml</file>
 	</qresource>
 </RCC>

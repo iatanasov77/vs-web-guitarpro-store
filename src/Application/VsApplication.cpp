@@ -156,6 +156,23 @@ QString VsApplication::appAboutBody()
 	return data;
 }
 
+void VsApplication::makeStartupApp()
+{
+	qDebug() << "App path : " << QCoreApplication::applicationDirPath();
+
+	/*
+	QString appName = "app.exe";
+	QString appNameLink = appName+".lnk";
+	QFile::link( appName, appNameLink );
+
+	QString userName = QDir::home().dirName();
+
+	QString dir_startup = "C:/Users/" + userName +
+			"/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/"+ appNameLink;
+	QFile::copy(appNameLink, dir_startup);
+	*/
+}
+
 QString VsApplication::apiUrl()
 {
 	return m_apiUrl;

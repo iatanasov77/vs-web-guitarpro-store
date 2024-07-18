@@ -10,6 +10,7 @@
 #include "ApiManager/CommandState.h"
 #include "Model/WgpFileSystemModel.h"
 #include "Dialog/UserLoginDialog.h"
+#include "Widget/Settings/SettingsWindow.h"
 
 namespace Ui {
 	class SystemTrayMenu;
@@ -26,6 +27,7 @@ class SystemTrayMenu : public QWidget
 	private:
 		Ui::SystemTrayMenu *ui;
 		UserLoginDialog *loginDialog;
+		SettingsWindow* wdgSettings;
 		QToolBar *toolBar;
 		WgpFileSystemModel *dirModel;
 
@@ -44,6 +46,7 @@ class SystemTrayMenu : public QWidget
 		void handleMyTablaturesResult( CommandState *state );
 		void handleSharedToMeTablaturesResult( CommandState *state );
 		void openWebGuitarProFolder();
+		void showSettingsWidget();
 		void testFileUpload();
 };
 

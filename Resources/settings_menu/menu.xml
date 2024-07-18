@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Menu xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<MenuItems>
+		<MenuItem id="general">
+			<Title>General</Title>
+			<MenuItems>
+				<!-- Example Childs
+				<MenuItem id="child1">
+					<Title>Child 1</Title>
+					<MenuItems />
+				</MenuItem>
+				<MenuItem id="child2">
+					<Title>Child 2</Title>
+					<MenuItems />
+				</MenuItem>
+				-->
+			</MenuItems>
+		</MenuItem>
+	</MenuItems>
+</Menu>

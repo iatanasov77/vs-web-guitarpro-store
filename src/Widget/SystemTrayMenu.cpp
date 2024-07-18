@@ -106,6 +106,12 @@ void SystemTrayMenu::_createToolBar()
 
 	QMenu *profileMenu 	= new QMenu( "Profile" );
 
+	QAction *actionPreferences = new QAction( tr("&Preferences" ), this );
+	actionPreferences->setStatusTip( tr( "Open Preferences Dialog" ) );
+	connect( actionPreferences, SIGNAL( triggered() ), this, SLOT( showSettingsWidget() ) );
+	actionPreferences->setIcon( QIcon( ":/Resources/icons/settings.svg" ) );
+	profileMenu->addAction( actionPreferences );
+
 	QAction *logoutAct = new QAction( tr("&Sign Out" ), this );
 	logoutAct->setStatusTip( tr( "Sign Out From API" ) );
 	connect( logoutAct, SIGNAL( triggered() ), this, SLOT( logout() ) );
@@ -353,6 +359,14 @@ void SystemTrayMenu::openWebGuitarProFolder()
 	//qDebug() << WebGuitarProFolder;
 
 	QDesktopServices::openUrl( QUrl::fromLocalFile( WebGuitarProFolder ) );
+}
+
+void SystemTrayMenu::showSettingsWidget()
+{
+	wdgSettings = new SettingsWindow( this );
+	wdgSettings->setWindowFlags( Qt::Window );
+
+	wdgSettings->show();
 }
 
 void SystemTrayMenu::testFileUpload()
