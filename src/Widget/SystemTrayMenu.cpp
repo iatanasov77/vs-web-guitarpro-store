@@ -108,17 +108,19 @@ void SystemTrayMenu::_createToolBar()
 
 	QAction *actionPreferences = new QAction( tr("&Preferences" ), this );
 	actionPreferences->setStatusTip( tr( "Open Preferences Dialog" ) );
-	connect( actionPreferences, SIGNAL( triggered() ), this, SLOT( showSettingsWidget() ) );
 	actionPreferences->setIcon( QIcon( ":/Resources/icons/settings.svg" ) );
+	connect( actionPreferences, SIGNAL( triggered() ), this, SLOT( showSettingsWidget() ) );
 	profileMenu->addAction( actionPreferences );
 
 	QAction *logoutAct = new QAction( tr("&Sign Out" ), this );
 	logoutAct->setStatusTip( tr( "Sign Out From API" ) );
+	logoutAct->setIcon( QIcon( ":/Resources/icons/logout.svg" ) );
 	connect( logoutAct, SIGNAL( triggered() ), this, SLOT( logout() ) );
 	profileMenu->addAction( logoutAct );
 
 	QAction *quitAct = new QAction( tr("&Quit" ), this );
 	quitAct->setStatusTip( tr( "Quit Application" ) );
+	quitAct->setIcon( QIcon( ":/Resources/icons/close.svg" ) );
 	connect( quitAct, &QAction::triggered, QCoreApplication::instance(), &QCoreApplication::quit, Qt::QueuedConnection );
 	profileMenu->addAction( quitAct );
 
