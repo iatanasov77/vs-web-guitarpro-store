@@ -22,6 +22,7 @@ static QMap<QString, QString> SettingsKeys {
 
 static QMap<QString, QString> HttpRequests {
 	{"LOGIN_REQUEST", "Login Request"},
+	{"REFRESH_TOKEN_REQUEST", "Refresh Token Request"},
 	{"DOWNLOAD_TABLATURE_REQUEST", "Download Tablature Request"},
 
 	{"GET_MYTABLATURES_REQUEST", "Get MyTablatures Request"},

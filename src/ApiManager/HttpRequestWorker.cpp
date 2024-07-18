@@ -353,7 +353,7 @@ void HttpRequestWorker::handleRequest( CommandState *state )
 {
 	qDebug() << "HttpRequestWorker::handleRequest Triggered ...";
 
-	if ( state->requestName == HttpRequests["LOGIN_REQUEST"] ) {
+	if ( state->requestName == HttpRequests["LOGIN_REQUEST"] || state->requestName == HttpRequests["REFRESH_TOKEN_REQUEST"] ) {
 		//return;
 		handleLoginCheck( state );
 	} else if( state->requestName == HttpRequests["DOWNLOAD_TABLATURE_REQUEST"] ) {

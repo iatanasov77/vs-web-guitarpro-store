@@ -22,6 +22,7 @@ class VsAuth : public QObject
 		explicit VsAuth( QObject *_parent = nullptr );
         static VsAuth *createInstance();
 
+        bool refreshAuthToken( QString refreshToken );
 	public:
         static VsAuth *instance();
 
